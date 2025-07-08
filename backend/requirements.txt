@@ -1,0 +1,12 @@
+# Python dependencies
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+python-multipart
+python-dotenv
+openai
+anthropic
+requests
+pytest
+pytest-asyncio
