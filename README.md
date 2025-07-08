@@ -9,7 +9,6 @@ Travel-Planner/
 ├── backend/                 # Python FastAPI backend
 ├── frontend/               # iOS SwiftUI frontend
 ├── docs/                   # Project documentation
-├── claude.md              # Claude AI assistant context
 └── README.md              # This file
 ```
 
@@ -38,4 +37,8 @@ open TravelPlanner.xcodeproj
 - Smart itinerary optimization
 - Export capabilities
 
-For detailed information, see `claude.md`.
+## Technologies
+- **Backend**: Python, FastAPI, SQLAlchemy, OpenAI/Anthropic APIs
+- **Frontend**: iOS SwiftUI, Swift 5.9+
+- **Database**: SQLite
+- **External APIs**: Weather, Maps, LLM services
