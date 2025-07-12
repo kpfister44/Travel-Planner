@@ -3,6 +3,7 @@ fastapi
 uvicorn
 sqlalchemy
 pydantic
+pydantic_settings
 python-multipart
 python-dotenv
 openai
