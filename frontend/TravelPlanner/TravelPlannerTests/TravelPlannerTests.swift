@@ -1,36 +1,46 @@
-//
-//  TravelPlannerTests.swift
-//  TravelPlannerTests
-//
-//  Created by Kyle Pfister on 7/8/25.
-//
-
 import XCTest
 @testable import TravelPlanner
 
 final class TravelPlannerTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    func testDefaultUserPreferencesInitialization() {
+        let prefs = UserPreferences()
+        XCTAssertEqual(prefs.groupSize, 2)
+        XCTAssertEqual(prefs.budget.currency, "USD")
+        XCTAssertTrue(prefs.likes.isEmpty)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    func testBudgetRangeIsValid() {
+        let prefs = UserPreferences()
+        XCTAssertGreaterThan(prefs.budget.max, prefs.budget.min, "Budget max should be greater than min")
+        XCTAssertTrue(prefs.budget.min >= 0, "Budget min should not be negative")
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    func testTravelDatesValidity() {
+        let prefs = UserPreferences()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        if let start = formatter.date(from: prefs.travelDates.startDate), let end = formatter.date(from: prefs.travelDates.endDate) {
+            XCTAssertLessThan(start, end, "Start date should be before end date")
+        } else {
+            XCTFail("Could not parse travel dates")
         }
     }
 
+    func testGroupSizeWithinExpectedRange() {
+        let prefs = UserPreferences()
+        XCTAssertTrue((1...10).contains(prefs.groupSize), "Group size should be within 1-10 (expected range)")
+    }
+
+    func testAgeGroupIsValid() {
+        let prefs = UserPreferences()
+        let validAgeGroups = QuestionnaireConstants.ageGroups
+        XCTAssertTrue(validAgeGroups.contains(prefs.travelerInfo.ageGroup) || prefs.travelerInfo.ageGroup == "", "Age group should be valid or empty")
+    }
+
+    func testTravelStyleIsValidOrEmpty() {
+        let prefs = UserPreferences()
+        let validStyles = QuestionnaireConstants.travelStyles
+        XCTAssertTrue(validStyles.contains(prefs.travelStyle) || prefs.travelStyle == "", "Travel style should be valid or empty")
+    }
 }
