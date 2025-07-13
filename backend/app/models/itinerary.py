@@ -1,1 +1,0 @@
-# Itinerary and activity models

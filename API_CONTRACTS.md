@@ -47,6 +47,12 @@ Development: http://localhost:8000/api/v1
 #### Response
 ```json
 {
+  "errors": [
+    {
+      "code": "string",
+      "message": "string"
+    }
+  ],
   "recommendations": [
     {
       "id": "dest_001",
@@ -147,6 +153,12 @@ Development: http://localhost:8000/api/v1
 #### Response
 ```json
 {
+  "errors": [
+    {
+      "code": "string",
+      "message": "string"
+    }
+  ],
   "questionnaire_id": "quest_001",
   "destination": {
     "id": "dest_001",
@@ -221,6 +233,12 @@ Development: http://localhost:8000/api/v1
 #### Response
 ```json
 {
+  "errors": [
+    {
+      "code": "string",
+      "message": "string"
+    }
+  ],
   "itinerary": {
     "destination": "Barcelona, Spain",
     "total_days": 7,
