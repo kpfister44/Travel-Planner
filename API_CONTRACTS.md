@@ -21,6 +21,9 @@ Development: http://localhost:8000/api/v1
 ```json
 {
   "preferences": {
+    "traveler_info": {
+      "age_group": "25-34"
+    },
     "budget": {
       "min": 500,
       "max": 2000,
@@ -31,15 +34,21 @@ Development: http://localhost:8000/api/v1
       "end_date": "2024-07-22"
     },
     "group_size": 2,
-    "interests": [
+    "group_relationship": "couple",
+    "preferred_location": "None (Open to suggestions)",
+    "likes": [
       "cultural_experiences",
       "food_and_drink", 
       "outdoor_activities",
       "historical_sites"
     ],
+    "dislikes": [
+      "crowded_places",
+      "extreme_weather"
+    ],
     "travel_style": "balanced",
     "must_haves": ["walkable city", "good food scene"],
-    "deal_breakers": ["extreme weather"]
+    "deal_breakers": ["long_flights"]
   }
 }
 ```
@@ -296,6 +305,9 @@ Development: http://localhost:8000/api/v1
 ### UserPreferences
 ```json
 {
+  "traveler_info": {
+    "age_group": "25-34"
+  },
   "budget": {
     "min": 500,
     "max": 2000,
@@ -306,7 +318,10 @@ Development: http://localhost:8000/api/v1
     "end_date": "2024-07-22"
   },
   "group_size": 2,
-  "interests": ["cultural_experiences", "food_and_drink"],
+  "group_relationship": "couple",
+  "preferred_location": "None (Open to suggestions)",
+  "likes": ["cultural_experiences", "food_and_drink"],
+  "dislikes": ["crowded_places"],
   "travel_style": "balanced",
   "must_haves": ["walkable city"],
   "deal_breakers": ["extreme weather"]
