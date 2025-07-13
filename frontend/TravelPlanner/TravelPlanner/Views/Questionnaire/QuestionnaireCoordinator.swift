@@ -45,6 +45,10 @@ class QuestionnaireCoordinator: ObservableObject {
         switch currentStep {
         case .welcome:
             break
+        case .travelerInfo:
+            if userPreferences.travelerInfo.ageGroup.isEmpty {
+                errors.append("Please select your age group")
+            }
         case .travelDates:
             if userPreferences.travelDates.startDate.isEmpty {
                 errors.append("Please select a start date")
@@ -65,6 +69,13 @@ class QuestionnaireCoordinator: ObservableObject {
             if userPreferences.groupSize < 1 || userPreferences.groupSize > 20 {
                 errors.append("Group size must be between 1 and 20")
             }
+            if userPreferences.groupRelationship.isEmpty {
+                errors.append("Please select your group relationship")
+            }
+        case .preferredLocation:
+            if userPreferences.preferredLocation.isEmpty {
+                errors.append("Please select a destination preference")
+            }
         case .budget:
             if userPreferences.budget.min >= userPreferences.budget.max {
                 errors.append("Maximum budget must be greater than minimum")
@@ -76,12 +87,16 @@ class QuestionnaireCoordinator: ObservableObject {
             if userPreferences.travelStyle.isEmpty {
                 errors.append("Please select a travel style")
             }
-        case .interests:
-            if userPreferences.interests.isEmpty {
-                errors.append("Please select at least one interest")
+        case .likes:
+            if userPreferences.likes.isEmpty {
+                errors.append("Please select at least one thing you like")
             }
-            if userPreferences.interests.count > 5 {
-                errors.append("Please select no more than 5 interests")
+            if userPreferences.likes.count > 5 {
+                errors.append("Please select no more than 5 likes")
+            }
+        case .dislikes:
+            if userPreferences.dislikes.count > 5 {
+                errors.append("Please select no more than 5 dislikes")
             }
         case .mustHaves:
             break

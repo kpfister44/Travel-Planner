@@ -8,12 +8,6 @@ struct QuestionnaireView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Progress Bar
-                ProgressView(value: coordinator.currentStep.progress)
-                    .progressViewStyle(LinearProgressViewStyle())
-                    .frame(height: 4)
-                    .padding(.horizontal)
-                
                 // Step Content
                 stepView
                     .transition(.asymmetric(
@@ -38,6 +32,14 @@ struct QuestionnaireView: View {
                     }
                 }
             }
+            .safeAreaInset(edge: .top) {
+                // Progress Bar positioned below navigation bar
+                ProgressView(value: coordinator.currentStep.progress)
+                    .progressViewStyle(LinearProgressViewStyle())
+                    .frame(height: 4)
+                    .padding(.horizontal)
+                    .background(Color(.systemBackground))
+            }
         }
         .onChange(of: coordinator.currentStep) { _ in
             coordinator.validateCurrentStep()
@@ -50,16 +52,22 @@ struct QuestionnaireView: View {
         switch coordinator.currentStep {
         case .welcome:
             WelcomeStepView()
+        case .travelerInfo:
+            TravelerInfoStepView(coordinator: coordinator)
         case .travelDates:
             TravelDatesStepView(coordinator: coordinator)
         case .groupSize:
             GroupSizeStepView(coordinator: coordinator)
+        case .preferredLocation:
+            PreferredLocationStepView(coordinator: coordinator)
         case .budget:
             BudgetStepView(coordinator: coordinator)
         case .travelStyle:
             TravelStyleStepView(coordinator: coordinator)
-        case .interests:
-            InterestsStepView(coordinator: coordinator)
+        case .likes:
+            LikesStepView(coordinator: coordinator)
+        case .dislikes:
+            DislikesStepView(coordinator: coordinator)
         case .mustHaves:
             MustHavesStepView(coordinator: coordinator)
         case .dealBreakers:

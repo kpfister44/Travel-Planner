@@ -21,6 +21,12 @@ struct SummaryStepView: View {
                 }
                 
                 VStack(spacing: 16) {
+                    SummaryCard(title: "About You", icon: "person.circle") {
+                        Text("Age Group: \(coordinator.userPreferences.travelerInfo.ageGroup)")
+                    } editAction: {
+                        coordinator.jumpToStep(.travelerInfo)
+                    }
+                    
                     SummaryCard(title: "Travel Dates", icon: "calendar") {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("From: \(formatDate(coordinator.userPreferences.travelDates.startDate))")
@@ -32,10 +38,20 @@ struct SummaryStepView: View {
                         coordinator.jumpToStep(.travelDates)
                     }
                     
-                    SummaryCard(title: "Group Size", icon: "person.2") {
-                        Text("\(coordinator.userPreferences.groupSize) \(coordinator.userPreferences.groupSize == 1 ? "person" : "people")")
+                    SummaryCard(title: "Group Details", icon: "person.2") {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("\(coordinator.userPreferences.groupSize) \(coordinator.userPreferences.groupSize == 1 ? "person" : "people")")
+                            Text("Type: \(coordinator.userPreferences.groupRelationship.replacingOccurrences(of: "_", with: " ").capitalized)")
+                                .foregroundColor(.secondary)
+                        }
                     } editAction: {
                         coordinator.jumpToStep(.groupSize)
+                    }
+                    
+                    SummaryCard(title: "Destination Preference", icon: "globe") {
+                        Text(coordinator.userPreferences.preferredLocation)
+                    } editAction: {
+                        coordinator.jumpToStep(.preferredLocation)
                     }
                     
                     SummaryCard(title: "Budget", icon: "dollarsign.circle") {
@@ -50,20 +66,38 @@ struct SummaryStepView: View {
                         coordinator.jumpToStep(.travelStyle)
                     }
                     
-                    SummaryCard(title: "Interests", icon: "heart") {
+                    SummaryCard(title: "What You Like", icon: "heart.fill") {
                         FlowLayout(spacing: 4) {
-                            ForEach(coordinator.userPreferences.interests, id: \.self) { interest in
-                                Text(interest.replacingOccurrences(of: "_", with: " ").capitalized)
+                            ForEach(coordinator.userPreferences.likes, id: \.self) { like in
+                                Text(like.replacingOccurrences(of: "_", with: " ").capitalized)
                                     .font(.caption)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
-                                    .background(Color.blue.opacity(0.1))
-                                    .foregroundColor(.blue)
+                                    .background(Color.green.opacity(0.1))
+                                    .foregroundColor(.green)
                                     .cornerRadius(8)
                             }
                         }
                     } editAction: {
-                        coordinator.jumpToStep(.interests)
+                        coordinator.jumpToStep(.likes)
+                    }
+                    
+                    if !coordinator.userPreferences.dislikes.isEmpty {
+                        SummaryCard(title: "What You Dislike", icon: "heart.slash.fill") {
+                            FlowLayout(spacing: 4) {
+                                ForEach(coordinator.userPreferences.dislikes, id: \.self) { dislike in
+                                    Text(dislike.replacingOccurrences(of: "_", with: " ").capitalized)
+                                        .font(.caption)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.red.opacity(0.1))
+                                        .foregroundColor(.red)
+                                        .cornerRadius(8)
+                                }
+                            }
+                        } editAction: {
+                            coordinator.jumpToStep(.dislikes)
+                        }
                     }
                     
                     if !coordinator.userPreferences.mustHaves.isEmpty {
