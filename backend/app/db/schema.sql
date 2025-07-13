@@ -1,0 +1,5 @@
+-- Destinations
+-- Activities
+-- Attractions
+-- Users (login information)
+-- Prompts (for logging user input, LLM output, prompt templates)
