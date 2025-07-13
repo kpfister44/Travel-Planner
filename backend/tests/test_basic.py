@@ -62,8 +62,6 @@ def test_no_overlap_in_lists():
     assert likes.isdisjoint(must_haves), "Likes and must_haves should not overlap"
     assert likes.isdisjoint(deal_breakers), "Likes and deal_breakers should not overlap"
     assert dislikes.isdisjoint(must_haves), "Dislikes and must_haves should not overlap"
-    # Remove this line since overlap is allowed:
-    # assert dislikes.isdisjoint(deal_breakers), "Dislikes and deal_breakers should not overlap"
 
 def test_group_size_edge_cases():
     prefs = generate_valid_user_preferences()

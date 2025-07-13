@@ -40,3 +40,10 @@ def generate_valid_user_preferences():
         "must_haves": random.sample(MUST_HAVES, k=2),
         "deal_breakers": random.sample(DEAL_BREAKERS, k=1)
     }
+
+def test_generated_user_preferences_format():
+    prefs = generate_valid_user_preferences()
+    assert isinstance(prefs, dict)
+    assert "budget" in prefs
+    assert prefs["budget"]["min"] < prefs["budget"]["max"]
+    assert prefs["travel_dates"]["start_date"] < prefs["travel_dates"]["end_date"]
