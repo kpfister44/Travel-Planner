@@ -105,6 +105,7 @@ enum QuestionnaireStep: Int, CaseIterable {
     case mustHaves = 9
     case dealBreakers = 10
     case summary = 11
+    case destinationSelection = 12
     
     var title: String {
         switch self {
@@ -120,6 +121,7 @@ enum QuestionnaireStep: Int, CaseIterable {
         case .mustHaves: return "Must-Haves"
         case .dealBreakers: return "Deal-Breakers"
         case .summary: return "Summary"
+        case .destinationSelection: return "Recommended Destinations"
         }
     }
     
@@ -244,4 +246,38 @@ struct QuestionnaireConstants {
         "no air conditioning",
         "smoking everywhere"
     ]
+}
+
+// MARK: - UI Helper Extensions
+
+extension Budget {
+    /// Formatted budget range for display
+    var formattedRange: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = currency
+        
+        let minFormatted = formatter.string(from: NSNumber(value: min)) ?? "$\(min)"
+        let maxFormatted = formatter.string(from: NSNumber(value: max)) ?? "$\(max)"
+        
+        return "\(minFormatted) - \(maxFormatted)"
+    }
+}
+
+extension TravelDates {
+    /// Formatted date range for display
+    var formattedRange: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "yyyy-MM-dd"
+        
+        guard let startDate = inputFormatter.date(from: startDate),
+              let endDate = inputFormatter.date(from: endDate) else {
+            return "Dates not set"
+        }
+        
+        return "\(formatter.string(from: startDate)) - \(formatter.string(from: endDate))"
+    }
 }
