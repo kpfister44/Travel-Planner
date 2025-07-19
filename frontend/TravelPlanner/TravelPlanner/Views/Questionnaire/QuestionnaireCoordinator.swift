@@ -7,6 +7,11 @@ class QuestionnaireCoordinator: ObservableObject {
     @Published var isCompleted = false
     @Published var validationErrors: [String] = []
     
+    // Destination selection state
+    @Published var destinationResponse: DestinationResponse?
+    @Published var selectedDestination: Destination?
+    @Published var isLoadingDestinations = false
+    
     var canGoForward: Bool {
         validateCurrentStep().isEmpty
     }
@@ -104,6 +109,10 @@ class QuestionnaireCoordinator: ObservableObject {
             break
         case .summary:
             break
+        case .destinationSelection:
+            if selectedDestination == nil {
+                errors.append("Please select a destination to continue")
+            }
         }
         
         // Update published errors on main thread
@@ -115,7 +124,9 @@ class QuestionnaireCoordinator: ObservableObject {
     }
     
     func completeQuestionnaire() {
-        isCompleted = true
+        // Navigate to destination selection step
+        currentStep = .destinationSelection
+        loadDestinations()
     }
     
     /// Resets all questionnaire data and returns to welcome step
@@ -124,6 +135,27 @@ class QuestionnaireCoordinator: ObservableObject {
         userPreferences = UserPreferences()
         isCompleted = false
         validationErrors = []
+        // Reset destination selection state
+        destinationResponse = nil
+        selectedDestination = nil
+        isLoadingDestinations = false
+    }
+    
+    /// Loads destination recommendations based on user preferences
+    func loadDestinations() {
+        isLoadingDestinations = true
+        
+        // TODO: Replace with actual API call
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            self.destinationResponse = MockData.mockDestinationResponse()
+            self.isLoadingDestinations = false
+        }
+    }
+    
+    /// Selects a destination and prepares for next step
+    func selectDestination(_ destination: Destination) {
+        selectedDestination = destination
+        // TODO: Navigate to itinerary questionnaire step
     }
     
     /// Helper to convert date strings to Date objects for validation

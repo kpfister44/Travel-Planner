@@ -5,6 +5,18 @@ struct QuestionnaireView: View {
     @StateObject private var coordinator = QuestionnaireCoordinator()
     @Environment(\.presentationMode) var presentationMode
     
+    /// Dynamic button text based on current step
+    private var nextButtonText: String {
+        switch coordinator.currentStep {
+        case .summary:
+            return "Get Recommendations"
+        case .destinationSelection:
+            return "Next"
+        default:
+            return "Next"
+        }
+    }
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -74,6 +86,8 @@ struct QuestionnaireView: View {
             DealBreakersStepView(coordinator: coordinator)
         case .summary:
             SummaryStepView(coordinator: coordinator)
+        case .destinationSelection:
+            DestinationSelectionStepView(coordinator: coordinator)
         }
     }
     
@@ -106,11 +120,10 @@ struct QuestionnaireView: View {
             Spacer()
             
             // Next/Finish Button
-            Button(coordinator.currentStep == .summary ? "Get Recommendations" : "Next") {
+            Button(nextButtonText) {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     if coordinator.currentStep == .summary {
                         coordinator.completeQuestionnaire()
-                        // TODO: Navigate to destinations view or make API call
                     } else {
                         coordinator.nextStep()
                     }
