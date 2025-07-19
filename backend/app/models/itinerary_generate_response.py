@@ -37,7 +37,7 @@ class ItinerarySummary(BaseModel):
 
 
 class ItineraryGenerateResponse(BaseModel):
-    errors: Optional[ErrorItem] = None
+    errors: Optional[List[ErrorItem]] = None
     itinerary: Itinerary
     summary: ItinerarySummary
 
