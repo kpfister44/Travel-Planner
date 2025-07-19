@@ -1,5 +1,5 @@
 # LLM destination discovery service
-
+from app.models.custom_exception import CustomException
 from app.models.destination_request import DestinationRequest
 from app.models.destination_response import DestinationResponse, Recommendation
 from app.services.openai_client import get_travel_ideas
@@ -25,15 +25,18 @@ class DestinationService:
                     self.get_recommendations.__name__, "Invalid input"
                 )
             )
-            return DestinationResponse(
-                errors=common_utils.get_error_response(400, "Invalid input data")
-            )
+            raise CustomException("Invalid input data")
+
+        # call OpenAI client to get destination ideas
         response_text = get_travel_ideas(request.preferences)
         if response_text is None:
-            print("Failed to fetch recommendations from OpenAI.")
-            return DestinationResponse(
-                errors=[{"code": "500", "message": "Failed to fetch recommendations."}]
+            logger.error(
+                common_utils.get_error_message(
+                    self.get_recommendations.__name__,
+                    "Failed to fetch recommendations from OpenAI.",
+                )
             )
+            raise CustomException("Failed to fetch recommendations from OpenAI.")
 
         try:
             response_json = json.loads(response_text)
@@ -45,9 +48,7 @@ class DestinationService:
                     self.get_recommendations.__name__, str(e)
                 )
             )
-            return DestinationResponse(
-                errors=[{"code": "500", "message": "Invalid response format."}]
-            )
+            raise CustomException("Invalid response format.")
 
 
 # recommendations = [

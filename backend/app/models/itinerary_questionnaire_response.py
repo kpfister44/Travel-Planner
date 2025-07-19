@@ -19,11 +19,11 @@ class SuggestedActivity(BaseModel):
 
 
 class ItineraryQuestionnaireResponse(BaseModel):
-    errors: Optional[ErrorItem] = None
-    questionnaire_id: str
-    destination: Destination
-    suggested_activities: List[SuggestedActivity]
-    ready_for_optimization: bool
+    errors: Optional[List[ErrorItem]] = None
+    questionnaire_id: Optional[str] = None
+    destination: Optional[Destination] = None
+    suggested_activities: Optional[List[SuggestedActivity]] = None
+    ready_for_optimization: Optional[bool] = None
 
     class Config:
         schema_extra = {
