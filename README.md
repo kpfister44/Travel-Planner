@@ -24,7 +24,7 @@ pip install -r requirements.txt
 
 ### Frontend Setup
 ```bash
-cd frontend
+cd frontend/TravelPlanner
 open TravelPlanner.xcodeproj
 ```
 
