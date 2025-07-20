@@ -34,7 +34,7 @@ struct DestinationSelectionStepView: View {
     }
     
     // MARK: - Error View
-    private func errorView(errors: [APIError]) -> some View {
+    private func errorView(errors: [BackendError]) -> some View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 48))

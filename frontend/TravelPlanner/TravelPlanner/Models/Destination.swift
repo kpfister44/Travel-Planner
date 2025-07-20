@@ -2,8 +2,8 @@ import Foundation
 
 // MARK: - API Response Models
 
-/// API error model matching backend error structure
-struct APIError: Codable {
+/// Backend error model matching backend error structure
+struct BackendError: Codable {
     let code: String
     let message: String
 }
@@ -30,7 +30,7 @@ struct Destination: Codable, Identifiable {
 
 /// Backend response wrapper for destination recommendations
 struct DestinationResponse: Codable {
-    let errors: [APIError]?
+    let errors: [BackendError]?
     let recommendations: [Destination]?
 }
 

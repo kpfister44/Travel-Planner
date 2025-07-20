@@ -27,24 +27,30 @@ def get_logging_message_request(request: object) -> str:
 # input validation for destination request
 def input_validation_destination(destinationRequest: DestinationRequest) -> bool:
     prefs = destinationRequest.preferences
-    if not all(
-        [
-            prefs,
-            prefs.budget
-            and prefs.budget.min is not None
-            and prefs.budget.max is not None,
-            prefs.travel_dates
-            and prefs.travel_dates.start_date
-            and prefs.travel_dates.end_date,
-            prefs.group_size and prefs.group_size > 0,
-            prefs.interests,
-            prefs.travel_style,
-            prefs.must_haves,
-            prefs.deal_breakers,
-        ]
-    ):
+    try:
+        # Check required fields
+        if not prefs:
+            return False
+        if not (prefs.traveler_info and prefs.traveler_info.age_group):
+            return False
+        if not (prefs.budget and prefs.budget.min is not None and prefs.budget.max is not None):
+            return False
+        if not (prefs.travel_dates and prefs.travel_dates.start_date and prefs.travel_dates.end_date):
+            return False
+        if not (prefs.group_size and prefs.group_size > 0):
+            return False
+        if not prefs.group_relationship:
+            return False
+        if not prefs.preferred_location:
+            return False
+        if not prefs.travel_style:
+            return False
+        # Allow empty arrays for interests, must_haves, deal_breakers
+        if prefs.interests is None or prefs.must_haves is None or prefs.deal_breakers is None:
+            return False
+        return True
+    except Exception as e:
         return False
-    return True
 
 
 def input_validation_itinerary_questionnaire(

@@ -145,10 +145,25 @@ class QuestionnaireCoordinator: ObservableObject {
     func loadDestinations() {
         isLoadingDestinations = true
         
-        // TODO: Replace with actual API call
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            self.destinationResponse = MockData.mockDestinationResponse()
-            self.isLoadingDestinations = false
+        Task {
+            do {
+                let response = try await APIService.shared.getDestinationRecommendations(preferences: userPreferences)
+                
+                await MainActor.run {
+                    self.destinationResponse = response
+                    self.isLoadingDestinations = false
+                }
+                
+            } catch {
+                await MainActor.run {
+                    // Create error response for display
+                    self.destinationResponse = DestinationResponse(
+                        errors: [BackendError(code: "API_ERROR", message: error.localizedDescription)],
+                        recommendations: []
+                    )
+                    self.isLoadingDestinations = false
+                }
+            }
         }
     }
     

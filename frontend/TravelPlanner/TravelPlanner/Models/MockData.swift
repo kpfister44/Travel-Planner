@@ -58,7 +58,7 @@ struct MockData {
     static func mockErrorResponse() -> DestinationResponse {
         return DestinationResponse(
             errors: [
-                APIError(code: "invalid_request", message: "Unable to process your preferences. Please try again.")
+                BackendError(code: "invalid_request", message: "Unable to process your preferences. Please try again.")
             ],
             recommendations: nil
         )
