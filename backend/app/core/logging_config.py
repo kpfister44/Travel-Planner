@@ -35,12 +35,7 @@ def setup_logging():
             "app": {
                 "handlers": ["default"],
                 "level": "DEBUG",
-                "propagate": True,  # propagate to root logger
-            },
-            "app": {
-                "handlers": ["default"],
-                "level": "INFO",
-                "propagate": True,  # propagate to root logger
+                "propagate": False,
             },
         },
         "root": {"level": "INFO", "handlers": ["default"]},

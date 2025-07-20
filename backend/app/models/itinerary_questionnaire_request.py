@@ -19,7 +19,7 @@ class MealPreferences(BaseModel):
     dinner: Literal["hotel", "local_restaurant", "skip", "other"]
 
 
-class activityTypes(BaseModel):
+class ActivityTypes(BaseModel):
     cultural: Literal["low", "medium", "high"]
     outdoor: Literal["low", "medium", "high"]
     food: Literal["low", "medium", "high"]
@@ -34,7 +34,7 @@ class ActivityPreferences(BaseModel):
     max_activities_per_day: int
     priority_interests: List[str]
     must_see_attractions: List[str]
-    activity_types: activityTypes
+    activity_types: ActivityTypes
     meal_preferences: MealPreferences
     transportation: Literal[
         "walking", "public_transport", "walking_and_public", "car", "mixed"

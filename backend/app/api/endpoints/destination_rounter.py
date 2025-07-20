@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Body, Depends
 import logging
 from app.models.destination_request import DestinationRequest
 from app.models.destination_response import DestinationResponse
@@ -9,16 +9,23 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/destinations", tags=["destinations"])
 
-destination_service = DestinationService()
+
+def get_destination_service() -> DestinationService:
+    return DestinationService()
 
 
 @router.post("/recommendations", response_model=DestinationResponse)
-async def get_destination_recommendations(request: DestinationRequest):
+async def get_destination_recommendations(
+    _: None = Depends(common_utils.validate_api_key),
+    request: DestinationRequest = Body(...),
+    service: DestinationService = Depends(get_destination_service),
+):
     logger.debug(
         common_utils.get_logging_message(get_destination_recommendations.__name__)
     )
+    logger.info(common_utils.get_logging_message_request(request))
     try:
-        return destination_service.get_recommendations(request)
+        return service.get_recommendations(request)
     except Exception as e:
         logger.error(
             common_utils.get_error_message(
@@ -26,7 +33,7 @@ async def get_destination_recommendations(request: DestinationRequest):
             )
         )
         return DestinationResponse(
-            errors=[{"code": "500", "message": "Internal server error"}]
+            errors=common_utils.get_error_response(400, "Internal server error")
         )
 
 
