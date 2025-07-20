@@ -53,7 +53,7 @@ async def get_optimized_itinerary(
         logger.error(
             common_utils.get_error_message(get_optimized_itinerary.__name__, str(e))
         )
-        ItineraryQuestionnaireResponse(
+        return ItineraryQuestionnaireResponse(
             errors=common_utils.get_error_response("400", "Internal server error")
         )
 
