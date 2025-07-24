@@ -8,7 +8,9 @@ from app.models.itinerary_questionnaire_request import ItineraryQuestionnaireReq
 
 # error message
 def get_error_response(code: str, message: str) -> list:
-    return [{"code": code, "message": message}]
+    #convert code to str
+    code_str = str(code)
+    return [{"code": code_str, "message": message}]
 
 
 # logging utility

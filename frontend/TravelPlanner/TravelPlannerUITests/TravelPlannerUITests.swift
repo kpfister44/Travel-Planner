@@ -1,41 +1,89 @@
-//
-//  TravelPlannerUITests.swift
-//  TravelPlannerUITests
-//
-//  Created by Kyle Pfister on 7/8/25.
-//
 
 import XCTest
 
 final class TravelPlannerUITests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
-        continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+    func testWelcomePageShowsNextButton() throws {
+        let app = XCUIApplication()
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Welcome"].exists)
+        let nextButton = app.buttons["Next"]
+        XCTAssertTrue(nextButton.exists)
+        XCTAssertTrue(nextButton.isEnabled)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    func testCancelButtonReturnsToWelcome() throws {
+        let app = XCUIApplication()
+        app.launch()
+        let nextButton = app.buttons["Next"]
+        if nextButton.exists && nextButton.isEnabled {
+            nextButton.tap() // Move from Welcome to next step
+        }
+        let cancelButton = app.navigationBars.buttons["Cancel"]
+        XCTAssertTrue(cancelButton.exists)
+        cancelButton.tap()
+        XCTAssertTrue(app.staticTexts["Welcome"].exists)
     }
 
-    @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testNextButtonNavigatesThroughRequiredSelections() throws {
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
+        let nextButton = app.buttons["Next"]
+        XCTAssertTrue(nextButton.exists)
+        XCTAssertTrue(nextButton.isEnabled)
+        nextButton.tap()
 
-    @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
+        XCTAssertTrue(app.staticTexts["About you"].exists)
+        XCTAssertFalse(nextButton.isEnabled)
+        let firstOption = app.tables.cells.element(boundBy: 0)
+        XCTAssertTrue(firstOption.exists)
+        firstOption.tap()
+        XCTAssertTrue(nextButton.isEnabled)
+        nextButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Travel Dates"].exists)
+        XCTAssertTrue(nextButton.isEnabled)
+        nextButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Group Details"].exists)
+        XCTAssertFalse(nextButton.isEnabled)
+        let groupSizeOption = app.tables.cells.element(boundBy: 0)
+        XCTAssertTrue(groupSizeOption.exists)
+        groupSizeOption.tap()
+        XCTAssertFalse(nextButton.isEnabled)
+        let groupRelationshipOption = app.tables.cells.element(boundBy: 1)
+        XCTAssertTrue(groupRelationshipOption.exists)
+        groupRelationshipOption.tap()
+        XCTAssertTrue(nextButton.isEnabled)
+        nextButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Destination Preference"].exists)
+        XCTAssertFalse(nextButton.isEnabled)
+        let destinationOption = app.tables.cells.element(boundBy: 0)
+        XCTAssertTrue(destinationOption.exists)
+        destinationOption.tap()
+        XCTAssertTrue(nextButton.isEnabled)
+        nextButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Budget"].exists)
+        XCTAssertTrue(nextButton.isEnabled)
+        nextButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Travel Style"].exists)
+        XCTAssertFalse(nextButton.isEnabled)
+        let travelStyleOption = app.tables.cells.element(boundBy: 0)
+        XCTAssertTrue(travelStyleOption.exists)
+        travelStyleOption.tap()
+        XCTAssertTrue(nextButton.isEnabled)
+        nextButton.tap()
+
+        XCTAssertTrue(app.staticTexts["What you like"].exists)
+        XCTAssertFalse(nextButton.isEnabled)
+        let likeOption = app.tables.cells.element(boundBy: 0)
+        XCTAssertTrue(likeOption.exists)
+        likeOption.tap()
+        XCTAssertTrue(nextButton.isEnabled)
+        nextButton.tap()
     }
 }
