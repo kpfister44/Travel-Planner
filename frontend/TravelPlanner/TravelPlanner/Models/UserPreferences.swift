@@ -106,6 +106,14 @@ enum QuestionnaireStep: Int, CaseIterable {
     case dealBreakers = 10
     case summary = 11
     case destinationSelection = 12
+    // Improved itinerary questionnaire steps
+    case activityTypes = 13
+    case activitySelection = 14
+    case travelPace = 15
+    case mustSeeAttractions = 16
+    case mealPreferences = 17
+    case transportation = 18
+    case itinerarySummary = 19
     
     var title: String {
         switch self {
@@ -122,6 +130,14 @@ enum QuestionnaireStep: Int, CaseIterable {
         case .dealBreakers: return "Deal-Breakers"
         case .summary: return "Summary"
         case .destinationSelection: return "Recommended Destinations"
+        // Improved itinerary questionnaire titles
+        case .activityTypes: return "Activity Interests"
+        case .activitySelection: return "Select Activities"
+        case .travelPace: return "Travel Pace"
+        case .mustSeeAttractions: return "Must-See Attractions"
+        case .mealPreferences: return "Dining Preferences"
+        case .transportation: return "Transportation"
+        case .itinerarySummary: return "Itinerary Summary"
         }
     }
     

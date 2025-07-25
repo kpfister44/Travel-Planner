@@ -12,6 +12,12 @@ class QuestionnaireCoordinator: ObservableObject {
     @Published var selectedDestination: Destination?
     @Published var isLoadingDestinations = false
     
+    // Itinerary preferences state
+    @Published var itineraryPreferences = ItineraryPreferences()
+    @Published var activitySuggestionsResponse: ActivitySuggestionsResponse?
+    @Published var selectedActivities: [SuggestedActivity] = []
+    @Published var isLoadingSuggestedActivities = false
+    
     var canGoForward: Bool {
         validateCurrentStep().isEmpty
     }
@@ -113,6 +119,25 @@ class QuestionnaireCoordinator: ObservableObject {
             if selectedDestination == nil {
                 errors.append("Please select a destination to continue")
             }
+        // Improved itinerary questionnaire validation
+        case .activityTypes:
+            break // Activity types have default values, no validation needed
+        case .activitySelection:
+            if selectedActivities.isEmpty {
+                errors.append("Please select at least one activity to continue")
+            }
+        case .travelPace:
+            break // Pace has default value, no validation needed
+        case .mustSeeAttractions:
+            break // Optional step, no validation needed
+        case .mealPreferences:
+            break // Meal preferences have default values, no validation needed
+        case .transportation:
+            if itineraryPreferences.accommodationArea.isEmpty {
+                errors.append("Please select your accommodation area preference")
+            }
+        case .itinerarySummary:
+            break // Summary step, no validation needed
         }
         
         // Update published errors on main thread
@@ -139,23 +164,81 @@ class QuestionnaireCoordinator: ObservableObject {
         destinationResponse = nil
         selectedDestination = nil
         isLoadingDestinations = false
+        // Reset itinerary state
+        itineraryPreferences = ItineraryPreferences()
+        activitySuggestionsResponse = nil
+        selectedActivities = []
+        isLoadingSuggestedActivities = false
     }
     
     /// Loads destination recommendations based on user preferences
     func loadDestinations() {
         isLoadingDestinations = true
         
-        // TODO: Replace with actual API call
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            self.destinationResponse = MockData.mockDestinationResponse()
-            self.isLoadingDestinations = false
+        Task {
+            do {
+                let response = try await APIService.shared.getDestinationRecommendations(preferences: userPreferences)
+                
+                await MainActor.run {
+                    self.destinationResponse = response
+                    self.isLoadingDestinations = false
+                }
+                
+            } catch {
+                await MainActor.run {
+                    // Create error response for display
+                    self.destinationResponse = DestinationResponse(
+                        errors: [BackendError(code: "API_ERROR", message: error.localizedDescription)],
+                        recommendations: []
+                    )
+                    self.isLoadingDestinations = false
+                }
+            }
         }
     }
     
-    /// Selects a destination and prepares for next step
+    /// Selects a destination and prepares for activity questionnaire
     func selectDestination(_ destination: Destination) {
         selectedDestination = destination
-        // TODO: Navigate to itinerary questionnaire step
+        // Don't automatically advance - let user click Next button
+    }
+    
+    /// Completes activity types step and loads activity suggestions
+    func completeActivityTypes() {
+        currentStep = .activitySelection
+        loadActivitySuggestions()
+    }
+    
+    /// Loads activity suggestions based on destination and activity preferences
+    func loadActivitySuggestions() {
+        guard let selectedDestination = selectedDestination else { return }
+        
+        isLoadingSuggestedActivities = true
+        
+        // TODO: Replace with actual API call
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            self.activitySuggestionsResponse = MockData.mockActivitySuggestionsResponse()
+            self.isLoadingSuggestedActivities = false
+        }
+    }
+    
+    /// Selects activities and continues to travel planning
+    func selectActivities(_ activities: [SuggestedActivity]) {
+        selectedActivities = activities
+        // Continue to travel pace step for detailed itinerary planning
+        currentStep = .travelPace
+    }
+    
+    /// Completes the itinerary summary and generates final itinerary
+    func completeItinerarySummary() {
+        // TODO: Call final itinerary generation API
+        completeItineraryQuestionnaire()
+    }
+    
+    /// Completes the entire questionnaire flow
+    func completeItineraryQuestionnaire() {
+        isCompleted = true
+        // TODO: Navigate to final itinerary view
     }
     
     /// Helper to convert date strings to Date objects for validation

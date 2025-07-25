@@ -12,6 +12,12 @@ struct QuestionnaireView: View {
             return "Get Recommendations"
         case .destinationSelection:
             return "Next"
+        case .activityTypes:
+            return "Get Activities"
+        case .activitySelection:
+            return "Next"
+        case .itinerarySummary:
+            return "Generate Itinerary"
         default:
             return "Next"
         }
@@ -88,6 +94,21 @@ struct QuestionnaireView: View {
             SummaryStepView(coordinator: coordinator)
         case .destinationSelection:
             DestinationSelectionStepView(coordinator: coordinator)
+        // Improved itinerary questionnaire steps
+        case .activityTypes:
+            ActivityTypesStepView(coordinator: coordinator)
+        case .activitySelection:
+            ActivitySelectionStepView(coordinator: coordinator)
+        case .travelPace:
+            TravelPaceStepView(coordinator: coordinator)
+        case .mustSeeAttractions:
+            MustSeeAttractionsStepView(coordinator: coordinator)
+        case .mealPreferences:
+            MealPreferencesStepView(coordinator: coordinator)
+        case .transportation:
+            TransportationStepView(coordinator: coordinator)
+        case .itinerarySummary:
+            ItinerarySummaryStepView(coordinator: coordinator)
         }
     }
     
@@ -122,9 +143,18 @@ struct QuestionnaireView: View {
             // Next/Finish Button
             Button(nextButtonText) {
                 withAnimation(.easeInOut(duration: 0.3)) {
-                    if coordinator.currentStep == .summary {
+                    switch coordinator.currentStep {
+                    case .summary:
                         coordinator.completeQuestionnaire()
-                    } else {
+                    case .destinationSelection:
+                        coordinator.nextStep() // Move to activity types step
+                    case .activityTypes:
+                        coordinator.completeActivityTypes()
+                    case .activitySelection:
+                        coordinator.selectActivities(coordinator.selectedActivities)
+                    case .itinerarySummary:
+                        coordinator.completeItinerarySummary()
+                    default:
                         coordinator.nextStep()
                     }
                 }
