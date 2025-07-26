@@ -37,9 +37,6 @@ def test_deal_breakers_not_empty():
     prefs = generate_valid_user_preferences()
     assert len(prefs["deal_breakers"]) > 0, "Deal breakers list should not be empty"
 
-
-# New tests:
-
 def test_travel_dates_validity():
     prefs = generate_valid_user_preferences()
     start_date = datetime.strptime(prefs["travel_dates"]["start_date"], "%Y-%m-%d")
