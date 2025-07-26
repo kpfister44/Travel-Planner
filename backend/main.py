@@ -30,3 +30,8 @@ app.include_router(itinerary_router.router)
 async def root():
     logger.info("Health check: Traveler-Planner API is running")
     return {"message": "Health check: Traveler-Planner API is running"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8002, reload=True)
