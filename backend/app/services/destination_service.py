@@ -4,6 +4,8 @@ from app.models.destination_request import DestinationRequest
 from app.models.destination_response import DestinationResponse, Recommendation
 from app.services.openai_client import get_travel_ideas
 from app.utils import common_utils
+from database import SessionLocal
+from models import Destination, Prompt
 import json
 import logging
 
@@ -14,7 +16,7 @@ class DestinationService:
     def __init__(self):
         pass
 
-    def get_recommendations(self, request: DestinationRequest) -> DestinationResponse:
+    def get_recommendations(self, request: DestinationRequest, user_id = None) -> DestinationResponse:
         # Placeholder for actual recommendation logic
         logger.debug(
             common_utils.get_logging_message(self.get_recommendations.__name__)
@@ -37,19 +39,65 @@ class DestinationService:
                 )
             )
             # Return mock data for testing when OpenAI API fails
-            return self._get_mock_response()
+            response = self._get_mock_response()
+            response_text = json.dumps(response.dict())
+        else:
+            try:
+                response_json = json.loads(response_text)
+                response = DestinationResponse(**response_json)
+            except Exception as e:
+                logger.error(
+                    common_utils.get_error_message(
+                        self.get_recommendations.__name__, str(e)
+                    )
+                )
+                raise CustomException("Invalid response format.")
 
+        # Save to database
+        self._save_to_database(request, response_text, response, user_id)
+
+        return response
+
+    def _save_to_database(self, request, response_text, response, user_id):
+        """Save the prompt and destinations to database"""
+        db = SessionLocal()
         try:
-            response_json = json.loads(response_text)
-            return DestinationResponse(**response_json)
+            # Save the prompt
+            if user_id:
+                prompt = Prompt(
+                    user_id=user_id,
+                    input_text=json.dumps(request.preferences.dict()),
+                    llm_output=response_text,
+                    prompt_template="destination_recommendation"
+                )
+                db.add(prompt)
+
+            # Save destinations if we got recommendations
+            if response.recommendations:
+                for rec in response.recommendations:
+                    # Check if destination already exists
+                    existing = db.query(Destination).filter(
+                        Destination.name == rec.name,
+                        Destination.country == rec.country
+                    ).first()
+
+                    if not existing:
+                        destination = Destination(
+                            name=rec.name,
+                            country=rec.country,
+                            description=rec.why_recommended,
+                            image_url=rec.image_url
+                        )
+                        db.add(destination)
+
+            db.commit()
+            logger.info("Saved data to database successfully")
 
         except Exception as e:
-            logger.error(
-                common_utils.get_error_message(
-                    self.get_recommendations.__name__, str(e)
-                )
-            )
-            raise CustomException("Invalid response format.")
+            logger.error(f"Failed to save to database: {e}")
+            db.rollback()
+        finally:
+            db.close()
 
     def _get_mock_response(self) -> DestinationResponse:
         """Returns mock destination data for testing when OpenAI API is unavailable"""
@@ -85,7 +133,6 @@ class DestinationService:
                 image_url=None
             )
         ]
-        
         return DestinationResponse(
             errors=None,
             recommendations=mock_recommendations
