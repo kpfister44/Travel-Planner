@@ -39,25 +39,26 @@ struct GroupSizeStepView: View {
                         .fontWeight(.semibold)
                     
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
-                        ForEach(quickOptions, id: \.self) { size in
-                            Button(action: {
-                                coordinator.userPreferences.groupSize = size
-                            }) {
-                                VStack(spacing: 8) {
-                                    Image(systemName: size == 1 ? "person.fill" : "person.2.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(coordinator.userPreferences.groupSize == size ? .white : .blue)
+                    ForEach(quickOptions, id: \.self) { size in
+                        Button(action: {
+                            coordinator.userPreferences.groupSize = size
+                        }) {
+                            VStack(spacing: 8) {
+                                Image(systemName: size == 1 ? "person.fill" : "person.2.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(coordinator.userPreferences.groupSize == size ? .white : .blue)
                                     
-                                    Text("\(size) \(size == 1 ? "Person" : "People")")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(coordinator.userPreferences.groupSize == size ? .white : .primary)
-                                }
-                                .frame(height: 70)
-                                .frame(maxWidth: .infinity)
-                                .background(coordinator.userPreferences.groupSize == size ? Color.blue : Color(.systemGray6))
-                                .cornerRadius(12)
+                                Text("\(size) \(size == 1 ? "Person" : "People")")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(coordinator.userPreferences.groupSize == size ? .white : .primary)
                             }
+                            .frame(height: 70)
+                            .frame(maxWidth: .infinity)
+                            .background(coordinator.userPreferences.groupSize == size ? Color.blue : Color(.systemGray6))
+                            .cornerRadius(12)
+                        }
+                        .accessibilityIdentifier("groupSize_\(size)")
                         }
                     }
                     
@@ -105,39 +106,40 @@ struct GroupSizeStepView: View {
                         .fontWeight(.semibold)
                     
                     VStack(spacing: 12) {
-                        ForEach(relationshipOptions, id: \.id) { relationship in
-                            Button(action: {
-                                coordinator.userPreferences.groupRelationship = relationship.id
-                            }) {
-                                HStack(spacing: 16) {
-                                    Image(systemName: relationship.icon)
-                                        .font(.system(size: 20))
-                                        .foregroundColor(coordinator.userPreferences.groupRelationship == relationship.id ? .white : .blue)
-                                        .frame(width: 30)
+                    ForEach(relationshipOptions, id: \.id) { relationship in
+                        Button(action: {
+                            coordinator.userPreferences.groupRelationship = relationship.id
+                        }) {
+                            HStack(spacing: 16) {
+                                Image(systemName: relationship.icon)
+                                    .font(.system(size: 20))
+                                    .foregroundColor(coordinator.userPreferences.groupRelationship == relationship.id ? .white : .blue)
+                                    .frame(width: 30)
                                     
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(relationship.title)
-                                            .font(.headline)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(coordinator.userPreferences.groupRelationship == relationship.id ? .white : .primary)
-                                        
-                                        Text(relationship.subtitle)
-                                            .font(.subheadline)
-                                            .foregroundColor(coordinator.userPreferences.groupRelationship == relationship.id ? .white.opacity(0.8) : .secondary)
-                                    }
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(relationship.title)
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(coordinator.userPreferences.groupRelationship == relationship.id ? .white : .primary)
                                     
-                                    Spacer()
-                                    
-                                    if coordinator.userPreferences.groupRelationship == relationship.id {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(.white)
-                                    }
+                                    Text(relationship.subtitle)
+                                        .font(.subheadline)
+                                        .foregroundColor(coordinator.userPreferences.groupRelationship == relationship.id ? .white.opacity(0.8) : .secondary)
                                 }
-                                .padding()
-                                .background(coordinator.userPreferences.groupRelationship == relationship.id ? Color.blue : Color(.systemGray6))
-                                .cornerRadius(12)
+                                
+                                Spacer()
+                                
+                                if coordinator.userPreferences.groupRelationship == relationship.id {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.white)
+                                }
                             }
+                            .padding()
+                            .background(coordinator.userPreferences.groupRelationship == relationship.id ? Color.blue : Color(.systemGray6))
+                            .cornerRadius(12)
+                        }
+                        .accessibilityIdentifier("groupRelationship_\(relationship.id)")
                         }
                     }
                 }

@@ -1,5 +1,12 @@
 import SwiftUI
 
+struct BudgetPreset: Identifiable {
+    let id: String
+    let min: Int
+    let max: Int
+    let label: String
+}
+
 /// Allows users to select their budget range through preset options or custom dual-thumb slider
 struct BudgetStepView: View {
     @ObservedObject var coordinator: QuestionnaireCoordinator
@@ -7,11 +14,11 @@ struct BudgetStepView: View {
     @State private var minBudget: Double = 500
     @State private var maxBudget: Double = 2000
     
-    private let budgetPresets = [
-        (min: 500, max: 1000, label: "Budget\n$500-$1K"),
-        (min: 1000, max: 2500, label: "Moderate\n$1K-$2.5K"),
-        (min: 2500, max: 5000, label: "Comfortable\n$2.5K-$5K"),
-        (min: 5000, max: 10000, label: "Luxury\n$5K-$10K+")
+    private let budgetPresets: [BudgetPreset] = [
+        BudgetPreset(id: "budget_low", min: 500, max: 1000, label: "Budget\n$500-$1K"),
+        BudgetPreset(id: "budget_moderate", min: 1000, max: 2500, label: "Moderate\n$1K-$2.5K"),
+        BudgetPreset(id: "budget_comfortable", min: 2500, max: 5000, label: "Comfortable\n$2.5K-$5K"),
+        BudgetPreset(id: "budget_luxury", min: 5000, max: 10000, label: "Luxury\n$5K-$10K+")
     ]
     
     var body: some View {
@@ -60,6 +67,7 @@ struct BudgetStepView: View {
                             )
                             .cornerRadius(12)
                         }
+                        .accessibilityIdentifier(preset.id)
                     }
                 }
                 
