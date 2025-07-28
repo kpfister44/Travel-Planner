@@ -22,9 +22,6 @@ async def get_destination_recommendations(
     request: DestinationRequest = Body(...),
     service: DestinationService = Depends(get_destination_service),
 ):
-    logger.debug(
-        common_utils.get_logging_message(get_destination_recommendations.__name__)
-    )
     logger.info(common_utils.get_logging_message_request(request))
     try:
         return service.get_recommendations(request)
