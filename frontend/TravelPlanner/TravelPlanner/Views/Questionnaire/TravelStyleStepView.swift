@@ -62,6 +62,7 @@ struct TravelStyleStepView: View {
                         .background(coordinator.userPreferences.travelStyle == style.id ? Color.blue : Color(.systemGray6))
                         .cornerRadius(12)
                     }
+                    .accessibilityIdentifier("style_\(style.id)")
                 }
             }
             

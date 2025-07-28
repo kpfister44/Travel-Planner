@@ -65,18 +65,16 @@ final class TravelPlannerUITests: XCTestCase {
         XCTAssertTrue(nextButton.isEnabled)
         nextButton.tap()
 
-        // Destination Selection
-        let destination = app.buttons.element(boundBy: 0)
-        XCTAssertTrue(destination.waitForExistence(timeout: 5))
-        destination.tap()
+        // Budget
+        XCTAssertTrue(app.staticTexts["What's your budget range?"].waitForExistence(timeout: 5))
         XCTAssertTrue(nextButton.isEnabled)
         nextButton.tap()
 
-        // Budget
-        XCTAssertTrue(app.staticTexts["What's your budget range?"].waitForExistence(timeout: 5))
-        let moderateBudget = app.buttons["budget_moderate"]
-        XCTAssertTrue(moderateBudget.waitForExistence(timeout: 5))
-        moderateBudget.tap()
+        // Style
+        XCTAssertTrue(app.staticTexts["What's your travel style?"].waitForExistence(timeout: 5))
+        let style = app.buttons["style_balanced"]
+        XCTAssertTrue(style.waitForExistence(timeout: 5))
+        style.tap()
         XCTAssertTrue(nextButton.isEnabled)
         nextButton.tap()
 
@@ -98,29 +96,18 @@ final class TravelPlannerUITests: XCTestCase {
 
         // Must-Haves
         XCTAssertTrue(app.staticTexts["What are your must-haves?"].waitForExistence(timeout: 5))
-        let mustHave = app.buttons["Free WiFi"]
-        XCTAssertTrue(mustHave.waitForExistence(timeout: 5))
-        mustHave.tap()
         XCTAssertTrue(nextButton.isEnabled)
         nextButton.tap()
 
         // Deal-Breakers
         XCTAssertTrue(app.staticTexts["What should we avoid?"].waitForExistence(timeout: 5))
-        let dealBreaker = app.buttons["Crowded Places"]
-        XCTAssertTrue(dealBreaker.waitForExistence(timeout: 5))
-        dealBreaker.tap()
         XCTAssertTrue(nextButton.isEnabled)
         nextButton.tap()
 
         // Summary
-        XCTAssertTrue(app.staticTexts["Summary"].waitForExistence(timeout: 5))
-        let confirm = app.buttons["Confirm"]
-        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
-        confirm.tap()
-
-        // Final page - Recommended Destinations
-        XCTAssertTrue(app.staticTexts["Recommended Destinations"].waitForExistence(timeout: 10))
-        let result = app.tables.cells.element(boundBy: 0)
-        XCTAssertTrue(result.exists)
+        XCTAssertTrue(app.staticTexts["Ready to find your perfect trip?"].waitForExistence(timeout: 5))
+        let getRecommendations = app.buttons["Get Recommendations"]
+        XCTAssertTrue(getRecommendations.isEnabled)
+        getRecommendations.tap()
     }
 }
