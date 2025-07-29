@@ -107,6 +107,29 @@ struct ItinerarySummaryStepView: View {
             }
             
             Spacer()
+            
+            // Loading overlay when generating itinerary
+            if coordinator.isGeneratingItinerary {
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                    
+                    VStack(spacing: 8) {
+                        Text("Generating your perfect itinerary...")
+                            .font(.headline)
+                            .fontWeight(.medium)
+                        
+                        Text("This may take a few seconds while we optimize your activities and schedule.")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(.systemBackground).opacity(0.95))
+                .transition(.opacity)
+            }
         }
         .padding()
     }
