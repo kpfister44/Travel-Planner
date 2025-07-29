@@ -114,6 +114,7 @@ enum QuestionnaireStep: Int, CaseIterable {
     case mealPreferences = 17
     case transportation = 18
     case itinerarySummary = 19
+    case itineraryDisplay = 20
     
     var title: String {
         switch self {
@@ -138,6 +139,7 @@ enum QuestionnaireStep: Int, CaseIterable {
         case .mealPreferences: return "Dining Preferences"
         case .transportation: return "Transportation"
         case .itinerarySummary: return "Itinerary Summary"
+        case .itineraryDisplay: return "Your Itinerary"
         }
     }
     

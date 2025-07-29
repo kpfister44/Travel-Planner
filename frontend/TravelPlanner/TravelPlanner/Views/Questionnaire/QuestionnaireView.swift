@@ -41,7 +41,7 @@ struct QuestionnaireView: View {
             .navigationTitle(coordinator.currentStep.title)
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -49,7 +49,7 @@ struct QuestionnaireView: View {
                         }
                     }
                 }
-            }
+            })
             .safeAreaInset(edge: .top) {
                 // Progress Bar positioned below navigation bar
                 ProgressView(value: coordinator.currentStep.progress)
@@ -109,6 +109,8 @@ struct QuestionnaireView: View {
             TransportationStepView(coordinator: coordinator)
         case .itinerarySummary:
             ItinerarySummaryStepView(coordinator: coordinator)
+        case .itineraryDisplay:
+            ItineraryDisplayView(coordinator: coordinator)
         }
     }
     
@@ -140,29 +142,32 @@ struct QuestionnaireView: View {
             
             Spacer()
             
-            // Next/Finish Button
-            Button(nextButtonText) {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    switch coordinator.currentStep {
-                    case .summary:
-                        coordinator.completeQuestionnaire()
-                    case .destinationSelection:
-                        coordinator.nextStep() // Move to activity types step
-                    case .activityTypes:
-                        coordinator.completeActivityTypes()
-                    case .activitySelection:
-                        coordinator.selectActivities(coordinator.selectedActivities)
-                    case .itinerarySummary:
-                        coordinator.completeItinerarySummary()
-                    default:
-                        coordinator.nextStep()
+            // Next/Finish Button (hide on itinerary display)
+            if coordinator.currentStep != .itineraryDisplay {
+                Button(nextButtonText) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        switch coordinator.currentStep {
+                        case .summary:
+                            coordinator.completeQuestionnaire()
+                        case .destinationSelection:
+                            coordinator.nextStep() // Move to activity types step
+                        case .activityTypes:
+                            coordinator.completeActivityTypes()
+                        case .activitySelection:
+                            coordinator.selectActivities(coordinator.selectedActivities)
+                        case .itinerarySummary:
+                            coordinator.completeItinerarySummary()
+                        default:
+                            coordinator.nextStep()
+                        }
                     }
                 }
+                .disabled(!coordinator.canGoForward || coordinator.isGeneratingItinerary)
+                .buttonStyle(.borderedProminent)
+                .opacity((coordinator.canGoForward && !coordinator.isGeneratingItinerary) ? 1.0 : 0.6)
             }
-            .disabled(!coordinator.canGoForward)
-            .buttonStyle(.borderedProminent)
-            .opacity(coordinator.canGoForward ? 1.0 : 0.6)
         }
+        .opacity(coordinator.currentStep == .itineraryDisplay ? 0 : 1)
     }
 }
 

@@ -18,6 +18,10 @@ class QuestionnaireCoordinator: ObservableObject {
     @Published var selectedActivities: [SuggestedActivity] = []
     @Published var isLoadingSuggestedActivities = false
     
+    // Generated itinerary state
+    @Published var generatedItinerary: ItineraryResponse?
+    @Published var isGeneratingItinerary = false
+    
     var canGoForward: Bool {
         validateCurrentStep().isEmpty
     }
@@ -138,6 +142,8 @@ class QuestionnaireCoordinator: ObservableObject {
             }
         case .itinerarySummary:
             break // Summary step, no validation needed
+        case .itineraryDisplay:
+            break // Display step, no validation needed
         }
         
         // Update published errors on main thread
@@ -154,22 +160,6 @@ class QuestionnaireCoordinator: ObservableObject {
         loadDestinations()
     }
     
-    /// Resets all questionnaire data and returns to welcome step
-    func resetQuestionnaire() {
-        currentStep = .welcome
-        userPreferences = UserPreferences()
-        isCompleted = false
-        validationErrors = []
-        // Reset destination selection state
-        destinationResponse = nil
-        selectedDestination = nil
-        isLoadingDestinations = false
-        // Reset itinerary state
-        itineraryPreferences = ItineraryPreferences()
-        activitySuggestionsResponse = nil
-        selectedActivities = []
-        isLoadingSuggestedActivities = false
-    }
     
     /// Loads destination recommendations based on user preferences
     func loadDestinations() {
@@ -231,14 +221,25 @@ class QuestionnaireCoordinator: ObservableObject {
     
     /// Completes the itinerary summary and generates final itinerary
     func completeItinerarySummary() {
-        // TODO: Call final itinerary generation API
-        completeItineraryQuestionnaire()
+        generateItinerary()
+    }
+    
+    /// Generates the final itinerary and navigates to display view
+    func generateItinerary() {
+        isGeneratingItinerary = true
+        
+        // TODO: Replace with actual API call to /itinerary/generate
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.generatedItinerary = MockData.mockItineraryResponse()
+            self.isGeneratingItinerary = false
+            // Only navigate after loading completes
+            self.currentStep = .itineraryDisplay
+        }
     }
     
     /// Completes the entire questionnaire flow
     func completeItineraryQuestionnaire() {
         isCompleted = true
-        // TODO: Navigate to final itinerary view
     }
     
     /// Helper to convert date strings to Date objects for validation
@@ -246,5 +247,22 @@ class QuestionnaireCoordinator: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.date(from: dateString)
+    }
+    
+    /// Resets questionnaire to start over
+    func resetQuestionnaire() {
+        currentStep = .welcome
+        userPreferences = UserPreferences()
+        itineraryPreferences = ItineraryPreferences()
+        destinationResponse = nil
+        selectedDestination = nil
+        activitySuggestionsResponse = nil
+        selectedActivities = []
+        generatedItinerary = nil
+        isLoadingDestinations = false
+        isLoadingSuggestedActivities = false
+        isGeneratingItinerary = false
+        isCompleted = false
+        validationErrors = []
     }
 }
