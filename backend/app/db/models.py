@@ -32,7 +32,6 @@ class Activity(Base):
     duration_hours = Column(REAL)
     cost = Column(REAL)
     priority = Column(String, default="medium")  # high, medium, low
-    created_at = Column(TIMESTAMP, default=datetime.datetime.now)
 
     # relationships
     questionnaire = relationship("Questionnaire", back_populates="activities")

@@ -19,6 +19,5 @@ CREATE TABLE activities (
     duration_hours REAL,
     cost REAL,
     priority TEXT DEFAULT 'medium',  
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (questionnaire_id) REFERENCES questionnaires(id) ON DELETE CASCADE
 );
