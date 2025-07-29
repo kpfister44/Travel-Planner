@@ -9,7 +9,9 @@ from app.models.itinerary_questionnaire_response import ItineraryQuestionnaireRe
 from app.models.itinerary_generate_request import ItineraryGenerateRequest
 from app.models.itinerary_generate_response import ItineraryGenerateResponse
 from app.services.openai_client import get_itinerary_activity
-
+from sqlalchemy.orm import Session
+from database import get_db
+from models import Questionnaire, Activity
 
 logger = logging.getLogger(__name__)
 
@@ -146,18 +148,45 @@ class ItineraryService:
     ) -> bool:
         """Save questionnaire and activities to database"""
         try:
-            from app.db import get_db
+            db: Session = next(get_db())
 
-            # TODO: Implement actual database save logic
+            # create or update the questionnaire record
+            questionnaire = db.query(Questionnaire).filter(
+                Questionnaire.id == questionnaire_id
+            ).first()
+            if not questionnaire:
+                # create new questionnaire record based on schema
+                questionnaire = Questionnaire(
+                    id=questionnaire_id,
+                    destination_id=None,
+                    destination_name="",
+                    ready_for_optimization=True
+                )
+                db.add(questionnaire)
+            # clear any existing activities for this questionnaire
+            db.query(Activity).filter(Activity.questionnaire_id ==
+                                      questionnaire_id).delete()
+            # save new activities based on schema
+            for activity_data in activities:
+                activity = Activity(
+                    questionnaire_id=questionnaire_id,
+                    name=activity_data.get("name", ""),
+                    description=activity_data.get("description", ""),
+                    category=activity_data.get("category", ""),
+                    duration_hours=activity_data.get("duration_hours", 0.0),
+                    cost=activity_data.get("cost", 0.0),
+                    priority=activity_data.get("priority", "medium")
+                )
+                db.add(activity)
+            db.commit()
             return True
 
         except Exception as e:
-            logger.error(
-                common_utils.get_error_message(
-                    self._save_activities_to_db.__name__, str(e)
-                )
-            )
+            logger.error(f"Error saving activities to database: {str(e)}")
+            db.rollback()
             return False
+        finally:
+            db.close()
 
     def _filter_selected_activities(
         self, all_activities: list[dict], selected_activities: list
