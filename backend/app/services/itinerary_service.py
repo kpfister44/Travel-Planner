@@ -9,7 +9,7 @@ from app.models.itinerary_questionnaire_request import ItineraryQuestionnaireReq
 from app.models.itinerary_questionnaire_response import ItineraryQuestionnaireResponse
 from app.models.itinerary_generate_request import ItineraryGenerateRequest
 from app.models.itinerary_generate_response import ItineraryGenerateResponse
-from app.services.openai_client import get_itinerary_activity
+from app.services.openai_client import get_itinerary_activity, get_optimized_itinerary
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import Questionnaire, Activity
@@ -137,10 +137,10 @@ class ItineraryService:
         optimization_request = self._prepare_optimization_request(
             questionnaire_data=questionnaire_data,
             selected_activities=selected_activities,
-            user_request=request,
+            request=request,
         )
 
-        response_text = get_itinerary_activity(optimization_request)
+        response_text = get_optimized_itinerary(optimization_request)
         if response_text is None:
             logger.error(
                 common_utils.get_error_message(
@@ -270,7 +270,7 @@ class ItineraryService:
                     priority=activity_data.get("priority", "medium"),
                 )
                 db.add(activity)
-                logger.info("Added questionnaire to session")
+                logger.info("Added activity to session")
             # commit the changes
             db.commit()
             logger.info("Successfully committed to database")
