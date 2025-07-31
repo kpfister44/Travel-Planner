@@ -1,4 +1,13 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP, Boolean, REAL
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    ForeignKey,
+    TIMESTAMP,
+    Boolean,
+    REAL,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 import datetime
@@ -16,16 +25,16 @@ class Questionnaire(Base):
     created_at = Column(TIMESTAMP, default=datetime.datetime.now)
 
     # relationships
-    activities = relationship("Activity", back_populates="questionnaire",
-                              cascade="all, delete-orphan")
+    activities = relationship(
+        "Activity", back_populates="questionnaire", cascade="all, delete-orphan"
+    )
 
 
 class Activity(Base):
     __tablename__ = "activities"
 
-    id = Column(Integer, primary_key=True, index=True)
-    questionnaire_id = Column(String, ForeignKey("questionnaires.id"),
-                              nullable=False)
+    id = Column(String, primary_key=True, index=True)
+    questionnaire_id = Column(String, ForeignKey("questionnaires.id"), nullable=False)
     name = Column(String, nullable=False)
     description = Column(Text)
     category = Column(String)

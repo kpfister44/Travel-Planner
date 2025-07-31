@@ -1,6 +1,7 @@
 # LLM itinerary optimization service
 import logging
 import json
+import ulid
 from app.utils import common_utils
 from app.models.errors import ErrorItem
 from app.models.custom_exception import CustomException
@@ -10,10 +11,23 @@ from app.models.itinerary_generate_request import ItineraryGenerateRequest
 from app.models.itinerary_generate_response import ItineraryGenerateResponse
 from app.services.openai_client import get_itinerary_activity
 from sqlalchemy.orm import Session
-from database import get_db
-from models import Questionnaire, Activity
+from app.db.database import get_db
+from app.db.models import Questionnaire, Activity
+
 
 logger = logging.getLogger(__name__)
+
+# we can use a context manager to handle database sessions
+# to ensure proper cleanup and avoid session leaks
+# from contextlib import contextmanager
+# @contextmanager
+# def get_db_session():
+#     """Context manager for database sessions"""
+#     db = next(get_db())
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 
 class ItineraryService:
@@ -21,7 +35,10 @@ class ItineraryService:
         self.questionnaire_repo = None
 
     def get_activities(self, request: ItineraryQuestionnaireRequest) -> dict:
-        # Placeholder for actual activity retrieval logic
+        """
+        Get itinerary activities based on user preferences and selected destination.
+        """
+
         logger.debug(common_utils.get_logging_message(self.get_activities.__name__))
 
         response_text = get_itinerary_activity(request)
@@ -39,17 +56,21 @@ class ItineraryService:
         try:
             response_json = json.loads(response_text)
             activities = response_json.get("suggested_activities", [])
-            is_ready_for_optimize = self._save_activities_to_db(id, activities)
 
-            response_json["questionnaire_id"] = id
-            response_json["destination"] = (
-                {
+            # Fix: Pass destination data to save method
+            destination_data = None
+            if request.selected_destination:
+                destination_data = {
                     "id": request.selected_destination.id,
                     "name": request.selected_destination.name,
                 }
-                if request.selected_destination
-                else None
+
+            is_ready_for_optimize = self._save_activities_to_db(
+                id, destination_data, activities
             )
+
+            response_json["questionnaire_id"] = id
+            response_json["destination"] = destination_data
             response_json["ready_for_optimization"] = is_ready_for_optimize
             return ItineraryQuestionnaireResponse(**response_json)
 
@@ -62,6 +83,9 @@ class ItineraryService:
     def get_itinerary(
         self, request: ItineraryGenerateRequest
     ) -> ItineraryGenerateResponse:
+        """
+        Generate an optimized itinerary based on user preferences and selected activities.
+        """
         logger.debug(common_utils.get_logging_message(self.get_itinerary.__name__))
 
         # optimization logic go here
@@ -137,11 +161,74 @@ class ItineraryService:
             raise CustomException("Invalid response format.")
 
     def _generate_questionnaire_id(self) -> str:
-        # Placeholder for ID generation logic
-        # In a real application, this could be a UUID or an auto-incremented DB ID
-        import uuid
+        """Generate a unique questionnaire ID"""
 
-        return f"quest_{uuid.uuid4().hex[:8]}"
+        return str(ulid.ULID())
+
+    def _get_activities_from_db(self, questionnaire_id: str) -> list[dict]:
+        """Retrieve activities from the database for a given questionnaire ID"""
+        try:
+            db: Session = next(get_db())
+            activities = (
+                db.query(Activity)
+                .filter(Activity.questionnaire_id == questionnaire_id)
+                .all()
+            )
+            return (
+                [
+                    {
+                        "id": activity.id,
+                        "name": activity.name,
+                        "description": activity.description,
+                        "category": activity.category,
+                        "duration_hours": activity.duration_hours,
+                        "cost": activity.cost,
+                        "priority": activity.priority,
+                    }
+                    for activity in activities
+                ]
+                if activities
+                else []
+            )
+        except Exception as e:
+            logger.error(
+                common_utils.get_error_message(
+                    self._get_activities_from_db.__name__, str(e)
+                )
+            )
+            return []
+        finally:
+            db.close()
+
+    def _get_questionnaire_from_db(self, questionnaire_id: str) -> dict:
+        """Retrieve questionnaire data from the database"""
+        try:
+            db: Session = next(get_db())
+            questionnaire = (
+                db.query(Questionnaire)
+                .filter(Questionnaire.id == questionnaire_id)
+                .first()
+            )
+            logger.info(f"Looking for questionnaire: {questionnaire_id}")
+            logger.info(f"Found questionnaire: {questionnaire is not None}")
+
+            if not questionnaire:
+                return None
+            return {
+                "id": questionnaire.id,
+                "destination_id": questionnaire.destination_id,
+                "destination_name": questionnaire.destination_name,
+                "ready_for_optimization": questionnaire.ready_for_optimization,
+            }
+        except Exception as e:
+            logger.error(
+                common_utils.get_error_message(
+                    self._get_questionnaire_from_db.__name__, str(e)
+                )
+            )
+            return None
+        finally:
+            db.close()
 
     def _save_activities_to_db(
         self, questionnaire_id: str, destination: dict, activities: list[dict]
@@ -149,40 +236,52 @@ class ItineraryService:
         """Save questionnaire and activities to database"""
         try:
             db: Session = next(get_db())
+            logger.info(f"Starting to save questionnaire: {questionnaire_id}")
 
             # create or update the questionnaire record
-            questionnaire = db.query(Questionnaire).filter(
-                Questionnaire.id == questionnaire_id
-            ).first()
+            questionnaire = (
+                db.query(Questionnaire)
+                .filter(Questionnaire.id == questionnaire_id)
+                .first()
+            )
             if not questionnaire:
                 # create new questionnaire record based on schema
                 questionnaire = Questionnaire(
                     id=questionnaire_id,
-                    destination_id=None,
-                    destination_name="",
-                    ready_for_optimization=True
+                    destination_id=destination.get("id") if destination else None,
+                    destination_name=destination.get("name", "") if destination else "",
+                    ready_for_optimization=True,
                 )
                 db.add(questionnaire)
             # clear any existing activities for this questionnaire
-            db.query(Activity).filter(Activity.questionnaire_id ==
-                                      questionnaire_id).delete()
+            db.query(Activity).filter(
+                Activity.questionnaire_id == questionnaire_id
+            ).delete()
             # save new activities based on schema
             for activity_data in activities:
                 activity = Activity(
+                    id=activity_data.get("id"),
                     questionnaire_id=questionnaire_id,
                     name=activity_data.get("name", ""),
                     description=activity_data.get("description", ""),
                     category=activity_data.get("category", ""),
                     duration_hours=activity_data.get("duration_hours", 0.0),
                     cost=activity_data.get("cost", 0.0),
-                    priority=activity_data.get("priority", "medium")
+                    priority=activity_data.get("priority", "medium"),
                 )
                 db.add(activity)
+                logger.info("Added questionnaire to session")
+            # commit the changes
             db.commit()
+            logger.info("Successfully committed to database")
             return True
 
         except Exception as e:
-            logger.error(f"Error saving activities to database: {str(e)}")
+            logger.error(
+                common_utils.get_error_message(
+                    self._save_activities_to_db.__name__, str(e)
+                )
+            )
             db.rollback()
             return False
         finally:

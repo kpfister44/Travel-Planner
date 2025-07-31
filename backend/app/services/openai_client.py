@@ -12,25 +12,25 @@ def get_travel_ideas(preferences: dict) -> str:
     logger.debug(common_utils.get_logging_message(get_travel_ideas.__name__))
     try:
         openai.api_key = settings.OPENAI_API_KEY
-        # response = openai.chat.completions.create(
-        #     model="gpt-3.5-turbo",
-        #     messages=[
-        #         {
-        #             "role": "system",
-        #             "content": openai_constants.DEFAULT_DESTINATION_SYSTEM_PROMPT,
-        #         },
-        #         {
-        #             "role": "user",
-        #             "content": f"Suggest 3 to 5 destination recommendations based on the following preferences: {preferences}",
-        #         },
-        #     ],
-        #     max_tokens=500,
-        #     temperature=0.7,
-        # )
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": openai_constants.DEFAULT_DESTINATION_SYSTEM_PROMPT,
+                },
+                {
+                    "role": "user",
+                    "content": f"Suggest 3 to 5 destination recommendations based on the following preferences: {preferences}",
+                },
+            ],
+            max_tokens=500,
+            temperature=0.7,
+        )
 
-        # test
-        response = None
-        raise Exception("OpenAI API is not available for testing.")
+        # testing purpose
+        # response = None
+        # raise Exception("OpenAI API is not available for testing.")
 
         logger.info(f"OpenAI response for destination: {response}")
     except Exception as e:
