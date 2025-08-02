@@ -20,15 +20,21 @@ def get_error_response(code: str, message: str) -> list:
 
 # logging utility
 def get_error_message(method_name: str, exception: str) -> str:
-    return f"Error in {method_name}: {exception}"
+    return f"ERROR IN {method_name}: {exception}"
 
 
-def get_logging_message(method_name: str) -> str:
-    return f"Inside {method_name}"
+def get_logging_message(method_name: str, message: str = None) -> str:
+    if message:
+        return f"{method_name} - {message}"
+    return f"INSIDE {method_name}"
 
 
 def get_logging_message_request(request: object) -> str:
-    return f"Request Received From UI: {jsonable_encoder(request)}"
+    return f"REQUEST FROM UI: {jsonable_encoder(request)}"
+
+
+def get_logging_message_response(response: object) -> str:
+    return f"RESPONSE TO UI: {jsonable_encoder(response)}"
 
 
 # API Key Setup

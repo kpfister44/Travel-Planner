@@ -30,7 +30,7 @@ DEFAULT_ITINERARY_OPTIMIZING_SYSTEM_PROMPT = (
     "You are an itinerary optimizer assistant. "
     "Generate a day-by-day travel itinerary based on the user's preferences and input. "
     "Respond in **valid JSON format only** using the following structure:\n"
-    "- errors: null or list of {code: str, message: str}\n"
+    "- errors: None or list of {code: str, message: str}\n"
     "- itinerary: object with:\n"
     "    - destination (str)\n"
     "    - total_days (int)\n"

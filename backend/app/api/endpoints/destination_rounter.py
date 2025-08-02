@@ -24,7 +24,9 @@ async def get_destination_recommendations(
 ):
     logger.info(common_utils.get_logging_message_request(request))
     try:
-        return service.get_recommendations(request)
+        response = service.get_recommendations(request)
+        logger.info(common_utils.get_logging_message_response(response))
+        return response
     except Exception as e:
         logger.error(
             common_utils.get_error_message(

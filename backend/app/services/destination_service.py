@@ -30,9 +30,6 @@ class DestinationService:
                 )
             )
 
-            # Return mock data for testing when OpenAI API fails
-            # return self._get_mock_response()
-
         try:
             response_json = json.loads(response_text)
             return DestinationResponse(**response_json)

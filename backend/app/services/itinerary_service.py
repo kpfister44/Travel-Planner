@@ -140,6 +140,7 @@ class ItineraryService:
             request=request,
         )
 
+        # call openai client to get optimized itinerary
         response_text = get_optimized_itinerary(optimization_request)
         if response_text is None:
             logger.error(
@@ -162,7 +163,12 @@ class ItineraryService:
 
     def _generate_questionnaire_id(self) -> str:
         """Generate a unique questionnaire ID"""
-
+        """" 
+        *** 
+        these IDs make database operations slow 
+        because the IDs are not continuous numbers but random string 
+        *** 
+        """
         return str(ulid.ULID())
 
     def _get_activities_from_db(self, questionnaire_id: str) -> list[dict]:
@@ -209,8 +215,12 @@ class ItineraryService:
                 .filter(Questionnaire.id == questionnaire_id)
                 .first()
             )
-            logger.info(f"Looking for questionnaire: {questionnaire_id}")
-            logger.info(f"Found questionnaire: {questionnaire is not None}")
+            logger.info(
+                common_utils.get_logging_message(
+                    self._get_questionnaire_from_db.__name__,
+                    f"Found questionnaire: {questionnaire is not None}",
+                )
+            )
 
             if not questionnaire:
                 return None
@@ -236,7 +246,12 @@ class ItineraryService:
         """Save questionnaire and activities to database"""
         try:
             db: Session = next(get_db())
-            logger.info(f"Starting to save questionnaire: {questionnaire_id}")
+            logger.info(
+                common_utils.get_logging_message(
+                    self._save_activities_to_db.__name__,
+                    f"Starting to save questionnaire: {questionnaire_id} and activities",
+                )
+            )
 
             # create or update the questionnaire record
             questionnaire = (
@@ -270,10 +285,14 @@ class ItineraryService:
                     priority=activity_data.get("priority", "medium"),
                 )
                 db.add(activity)
-                logger.info("Added activity to session")
             # commit the changes
             db.commit()
-            logger.info("Successfully committed to database")
+            logger.info(
+                common_utils.get_logging_message(
+                    self._save_activities_to_db.__name__,
+                    "Activities saved successfully",
+                )
+            )
             return True
 
         except Exception as e:
@@ -297,6 +316,18 @@ class ItineraryService:
             activity.id: activity.priority for activity in selected_activities
         }
 
+        # log the unrecognized activities
+        all_activities_id = {activity["id"] for activity in all_activities}
+        missing_ids = selected_map.keys() - all_activities_id
+        if missing_ids:
+            logger.warning(
+                common_utils.get_logging_message(
+                    self._filter_selected_activities.__name__,
+                    f"Selected activities not found in database: {missing_ids}",
+                )
+            )
+
+        # filter the activities based on the selected map
         filtered_activities = []
         for activity in all_activities:
             if activity["id"] in selected_map:
@@ -306,7 +337,10 @@ class ItineraryService:
                 filtered_activities.append(activity_copy)
 
         logger.info(
-            f"Selected {len(filtered_activities)} out of {len(all_activities)} activities"
+            common_utils.get_logging_message(
+                self._filter_selected_activities.__name__,
+                f"Selected {len(filtered_activities)} out of {len(all_activities)} activities",
+            )
         )
         return filtered_activities
 

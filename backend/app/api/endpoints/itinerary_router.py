@@ -29,7 +29,9 @@ async def get_itinerary_activities(
     logger.info(common_utils.get_logging_message_request(request))
     try:
         # return {"status": "ok", "message": "Itinerary service is running"}
-        return service.get_activities(request)
+        respose = service.get_activities(request)
+        logger.info(common_utils.get_logging_message_response(respose))
+        return respose
 
     except Exception as e:
         logger.error(
@@ -49,7 +51,9 @@ async def get_optimized_itinerary(
 ):
     logger.info(common_utils.get_logging_message_request(request))
     try:
-        return service.get_itinerary(request)
+        response = service.get_itinerary(request)
+        logger.info(common_utils.get_logging_message_response(response))
+        return response
     except Exception as e:
         logger.error(
             common_utils.get_error_message(get_optimized_itinerary.__name__, str(e))
@@ -69,9 +73,12 @@ async def health_check(service: ItineraryService = Depends(get_itinerary_service
 
 
 @router.get("/health/db", response_model=dict)
-async def health_check(service: ItineraryService = Depends(get_itinerary_service)):
+async def health_check(
+    _: None = Depends(validate_api_key),
+    service: ItineraryService = Depends(get_itinerary_service),
+):
     logger.info(common_utils.get_logging_message(health_check.__name__))
     service.debug_print_all_data()
     if service is None:
         return {"status": "error", "message": "Itinerary service is not available"}
-    return {"status": "ok", "message": "printed all data"}
+    return {"status": "ok", "message": "Printed all data"}
