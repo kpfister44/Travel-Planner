@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+
 class Recommendation(BaseModel):
     id: str
     name: str
@@ -11,9 +12,11 @@ class Recommendation(BaseModel):
     why_recommended: str
     image_url: Optional[str] = None
 
+
 class ErrorItem(BaseModel):
     code: str
     message: str
+
 
 class DestinationResponse(BaseModel):
     errors: Optional[List[ErrorItem]] = None
@@ -25,7 +28,7 @@ class DestinationResponse(BaseModel):
                 "errors": [
                     {
                         "code": "invalid_request",
-                        "message": "The request is missing required fields."
+                        "message": "The request is missing required fields.",
                     }
                 ],
                 "recommendations": [
@@ -38,10 +41,10 @@ class DestinationResponse(BaseModel):
                         "highlights": [
                             "Stunning Gaudí architecture",
                             "World-class food scene",
-                            "Beautiful beaches within city"
+                            "Beautiful beaches within city",
                         ],
                         "why_recommended": "Perfect for cultural interests with great walkability...",
-                        "image_url": "https://example.com/barcelona.jpg"
+                        "image_url": "https://example.com/barcelona.jpg",
                     },
                     {
                         "id": "dest_002",
@@ -52,11 +55,11 @@ class DestinationResponse(BaseModel):
                         "highlights": [
                             "Medieval Old Town",
                             "Affordable prices",
-                            "Rich history"
+                            "Rich history",
                         ],
                         "why_recommended": "Great value destination with amazing architecture...",
-                        "image_url": "https://example.com/prague.jpg"
-                    }
-                ]
+                        "image_url": "https://example.com/prague.jpg",
+                    },
+                ],
             }
         }

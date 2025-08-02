@@ -38,8 +38,8 @@ class ItinerarySummary(BaseModel):
 
 class ItineraryGenerateResponse(BaseModel):
     errors: Optional[List[ErrorItem]] = None
-    itinerary: Itinerary
-    summary: ItinerarySummary
+    itinerary: Optional[Itinerary] = None
+    summary: Optional[ItinerarySummary] = None
 
     class Config:
         schema_extra = {
