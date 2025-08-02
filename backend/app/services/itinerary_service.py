@@ -1,7 +1,6 @@
 # LLM itinerary optimization service
 import logging
 import json
-import ulid
 from app.utils import common_utils
 from app.models.errors import ErrorItem
 from app.models.custom_exception import CustomException

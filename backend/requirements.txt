@@ -11,4 +11,3 @@ anthropic
 requests
 pytest
 pytest-asyncio
-python-ulid
