@@ -2,7 +2,7 @@
 
 -- Questionnaires (stores the questionnaire data and destination info)
 CREATE TABLE questionnaires (
-    id TEXT PRIMARY KEY, 
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     destination_id INTEGER,
     destination_name TEXT NOT NULL,
     ready_for_optimization BOOLEAN DEFAULT FALSE,
@@ -12,7 +12,7 @@ CREATE TABLE questionnaires (
 -- Activities (stores the LLM-suggested activities for each questionnaire)
 CREATE TABLE activities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    questionnaire_id TEXT NOT NULL,
+    questionnaire_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     category TEXT,
