@@ -51,8 +51,6 @@ class ItineraryService:
             )
             raise CustomException("Failed to fetch activities from OpenAI.")
 
-        id = self._generate_questionnaire_id()
-
         try:
             response_json = json.loads(response_text)
             activities = response_json.get("suggested_activities", [])
@@ -65,13 +63,20 @@ class ItineraryService:
                     "name": request.selected_destination.name,
                 }
 
-            is_ready_for_optimize = self._save_activities_to_db(
-                id, destination_data, activities
-            )
+            success, id = self._save_activities_to_db(destination_data, activities)
 
-            response_json["questionnaire_id"] = id
+            if not success:
+                logger.error(
+                    common_utils.get_error_message(
+                        self.get_activities.__name__,
+                        "Failed to save activities to database.",
+                    )
+                )
+                raise CustomException("Failed to save activities to database.")
+
+            response_json["questionnaire_id"] = str(id)
             response_json["destination"] = destination_data
-            response_json["ready_for_optimization"] = is_ready_for_optimize
+            response_json["ready_for_optimization"] = True
             return ItineraryQuestionnaireResponse(**response_json)
 
         except Exception as e:
@@ -161,18 +166,11 @@ class ItineraryService:
             )
             raise CustomException("Invalid response format.")
 
-    def _generate_questionnaire_id(self) -> str:
-        """Generate a unique questionnaire ID"""
-        """" 
-        *** 
-        these IDs make database operations slow 
-        because the IDs are not continuous numbers but random string 
-        *** 
-        """
-        return str(ulid.ULID())
-
     def _get_activities_from_db(self, questionnaire_id: str) -> list[dict]:
         """Retrieve activities from the database for a given questionnaire ID"""
+        logger.debug(
+            common_utils.get_logging_message(self._get_activities_from_db.__name__)
+        )
         try:
             db: Session = next(get_db())
             activities = (
@@ -208,6 +206,9 @@ class ItineraryService:
 
     def _get_questionnaire_from_db(self, questionnaire_id: str) -> dict:
         """Retrieve questionnaire data from the database"""
+        logger.debug(
+            common_utils.get_logging_message(self._get_questionnaire_from_db.__name__)
+        )
         try:
             db: Session = next(get_db())
             questionnaire = (
@@ -240,43 +241,37 @@ class ItineraryService:
         finally:
             db.close()
 
-    def _save_activities_to_db(
-        self, questionnaire_id: str, destination: dict, activities: list[dict]
-    ) -> bool:
+    def _save_activities_to_db(self, destination: dict, activities: list[dict]) -> bool:
         """Save questionnaire and activities to database"""
+        logger.debug(
+            common_utils.get_logging_message(self._save_activities_to_db.__name__)
+        )
         try:
             db: Session = next(get_db())
+
+            # create new questionnaire record based on schema
+            questionnaire = Questionnaire(
+                destination_id=destination.get("id") if destination else None,
+                destination_name=destination.get("name", "") if destination else "",
+                ready_for_optimization=True,
+            )
+            db.add(questionnaire)
+            db.flush()
             logger.info(
                 common_utils.get_logging_message(
                     self._save_activities_to_db.__name__,
-                    f"Starting to save questionnaire: {questionnaire_id} and activities",
+                    f"Starting to save questionnaire: {questionnaire.id} and activities",
                 )
             )
-
-            # create or update the questionnaire record
-            questionnaire = (
-                db.query(Questionnaire)
-                .filter(Questionnaire.id == questionnaire_id)
-                .first()
-            )
-            if not questionnaire:
-                # create new questionnaire record based on schema
-                questionnaire = Questionnaire(
-                    id=questionnaire_id,
-                    destination_id=destination.get("id") if destination else None,
-                    destination_name=destination.get("name", "") if destination else "",
-                    ready_for_optimization=True,
-                )
-                db.add(questionnaire)
             # clear any existing activities for this questionnaire
             db.query(Activity).filter(
-                Activity.questionnaire_id == questionnaire_id
+                Activity.questionnaire_id == questionnaire.id
             ).delete()
             # save new activities based on schema
             for activity_data in activities:
                 activity = Activity(
                     original_id=activity_data.get("id"),
-                    questionnaire_id=questionnaire_id,
+                    questionnaire_id=questionnaire.id,
                     name=activity_data.get("name", ""),
                     description=activity_data.get("description", ""),
                     category=activity_data.get("category", ""),
@@ -293,7 +288,7 @@ class ItineraryService:
                     "Activities saved successfully",
                 )
             )
-            return True
+            return True, questionnaire.id
 
         except Exception as e:
             logger.error(
@@ -302,7 +297,7 @@ class ItineraryService:
                 )
             )
             db.rollback()
-            return False
+            return False, None
         finally:
             db.close()
 
@@ -310,7 +305,9 @@ class ItineraryService:
         self, all_activities: list[dict], selected_activities: list
     ) -> list[dict]:
         """Filter activities based on user selection and update priorities"""
-
+        logger.debug(
+            common_utils.get_logging_message(self._filter_selected_activities.__name__)
+        )
         # Create a mapping of selected activities by ID
         selected_map = {
             activity.id: activity.priority for activity in selected_activities
@@ -351,6 +348,11 @@ class ItineraryService:
         request: ItineraryGenerateRequest,
     ) -> dict:
         """Prepare the request for OpenAI itinerary optimization"""
+        logger.debug(
+            common_utils.get_logging_message(
+                self._prepare_optimization_request.__name__
+            )
+        )
         return {
             "questionnaire_id": questionnaire_data["id"],
             "destination": {

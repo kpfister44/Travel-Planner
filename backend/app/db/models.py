@@ -18,7 +18,7 @@ Base = declarative_base()
 class Questionnaire(Base):
     __tablename__ = "questionnaires"
 
-    id = Column(String, primary_key=True, index=True)  # quest_xxxxx format
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     destination_id = Column(Integer)
     destination_name = Column(String, nullable=False)
     ready_for_optimization = Column(Boolean, default=False)
