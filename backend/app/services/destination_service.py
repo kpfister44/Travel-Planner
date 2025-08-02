@@ -19,13 +19,6 @@ class DestinationService:
         logger.debug(
             common_utils.get_logging_message(self.get_recommendations.__name__)
         )
-        if not common_utils.input_validation_destination(request):
-            logger.error(
-                common_utils.get_error_message(
-                    self.get_recommendations.__name__, "Invalid input"
-                )
-            )
-            raise CustomException("Invalid input data")
 
         # call OpenAI client to get destination ideas
         response_text = get_travel_ideas(request.preferences)

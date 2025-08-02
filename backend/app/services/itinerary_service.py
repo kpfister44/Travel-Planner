@@ -177,7 +177,7 @@ class ItineraryService:
             return (
                 [
                     {
-                        "id": activity.id,
+                        "id": activity.original_id,
                         "name": activity.name,
                         "description": activity.description,
                         "category": activity.category,
@@ -260,7 +260,7 @@ class ItineraryService:
             # save new activities based on schema
             for activity_data in activities:
                 activity = Activity(
-                    id=activity_data.get("id"),
+                    original_id=activity_data.get("id"),
                     questionnaire_id=questionnaire_id,
                     name=activity_data.get("name", ""),
                     description=activity_data.get("description", ""),
@@ -348,3 +348,29 @@ class ItineraryService:
                 "total_estimated_cost": sum([a["cost"] for a in selected_activities]),
             },
         }
+
+    def debug_print_all_data(self):
+        """Quick method to print all database data - for debugging"""
+        print("\n🔍 DEBUG: Printing all database data...")
+
+        try:
+            db: Session = next(get_db())
+
+            # Print questionnaires
+            questionnaires = db.query(Questionnaire).all()
+            print(f"\n📋 QUESTIONNAIRES ({len(questionnaires)}):")
+            for q in questionnaires:
+                print(
+                    f"  {q.id} | {q.destination_name} | Ready: {q.ready_for_optimization}"
+                )
+
+            # Print activities
+            activities = db.query(Activity).all()
+            print(f"\n🎯 ACTIVITIES ({len(activities)}):")
+            for a in activities:
+                print(f"  {a.id} | {a.questionnaire_id} | {a.name} | {a.priority}")
+
+        except Exception as e:
+            print(f"❌ Debug print failed: {str(e)}")
+        finally:
+            db.close()

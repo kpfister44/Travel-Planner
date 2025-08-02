@@ -33,7 +33,11 @@ class Questionnaire(Base):
 class Activity(Base):
     __tablename__ = "activities"
 
-    id = Column(String, primary_key=True, index=True)
+    # Auto-increment primary key
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    # Store original activity ID from OpenAI
+    original_id = Column(String, nullable=True)  # act_001, act_002, etc.
     questionnaire_id = Column(String, ForeignKey("questionnaires.id"), nullable=False)
     name = Column(String, nullable=False)
     description = Column(Text)

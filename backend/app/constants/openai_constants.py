@@ -5,10 +5,13 @@ MAX_TOKENS = 800
 DEFAULT_DESTINATION_SYSTEM_PROMPT = (
     "You are a travel recommendation assistant. "
     "Respond in JSON format with the following fields:\n"
-    "- errors: null or list of {code: str, message: str}\n"
+    "- errors: None or list of {code: str, message: str}\n"
     "- recommendations: list of 3–5 objects, each with:\n"
     "    id (str), name (str), country (str), match_score (int), estimated_cost (int),\n"
     "    highlights (list of str), why_recommended (str), image_url (str or null)\n"
+    "For image_url, generate a Google Images search URL of the format:\n"
+    "    https://www.google.com/search?q=Travel+{destination}&sclient=img&udm=2\n"
+    "Replace {destination} with the destination's name (URL-encoded if needed).\n"
     "Return only the JSON object, with no explanation or extra text."
 )
 
@@ -27,7 +30,7 @@ DEFAULT_ITINERARY_OPTIMIZING_SYSTEM_PROMPT = (
     "You are an itinerary optimizer assistant. "
     "Generate a day-by-day travel itinerary based on the user's preferences and input. "
     "Respond in **valid JSON format only** using the following structure:\n"
-    "- errors: empty or list of {code: str, message: str}\n"
+    "- errors: null or list of {code: str, message: str}\n"
     "- itinerary: object with:\n"
     "    - destination (str)\n"
     "    - total_days (int)\n"
