@@ -21,3 +21,12 @@ CREATE TABLE activities (
     priority TEXT DEFAULT 'medium',  
     FOREIGN KEY (questionnaire_id) REFERENCES questionnaires(id) ON DELETE CASCADE
 );
+
+-- Rate Limits table for API rate limiting
+CREATE TABLE rate_limits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_address TEXT NOT NULL,
+    request_count INTEGER DEFAULT 1,
+    window_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_request TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
