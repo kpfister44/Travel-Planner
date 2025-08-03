@@ -11,7 +11,7 @@ from app.models.itinerary_generate_response import ItineraryGenerateResponse
 from app.services.openai_client import get_itinerary_activity, get_optimized_itinerary
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.db.models import Questionnaire, Activity
+from app.db.models import Questionnaire, Activity, RateLimitEntry
 
 
 logger = logging.getLogger(__name__)
@@ -404,6 +404,14 @@ class ItineraryService:
             print(f"\n🎯 ACTIVITIES ({len(activities)}):")
             for a in activities:
                 print(f"  {a.id} | {a.questionnaire_id} | {a.name} | {a.priority}")
+
+            rate_limits = db.query(RateLimitEntry).all()
+            print(f"\n⏱️ RATE LIMITS ({len(rate_limits)}):")
+            for r in rate_limits:
+                print(
+                    f"  {r.id} | {r.ip_address} | Count: {r.request_count} | "
+                    f"Window Start: {r.window_start} | Last Request: {r.last_request}"
+                )
 
         except Exception as e:
             print(f"❌ Debug print failed: {str(e)}")

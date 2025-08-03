@@ -10,6 +10,8 @@ from app.core.exception_handler import (
     api_exception_handler,
     general_exception_handler,
 )
+from app.middleware.rate_limiter import RateLimiter
+from app.middleware.rate_limit_middleware import RateLimitMiddleware
 import logging
 
 
@@ -26,6 +28,12 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
 )
+
+# Create rate limiter instance
+rate_limiter = RateLimiter()
+
+# Add rate limiting middleware
+app.add_middleware(RateLimitMiddleware, rate_limiter=rate_limiter)
 
 # exception handlers
 app.add_exception_handler(RequestValidationError, validation_exception_handler)

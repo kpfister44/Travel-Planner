@@ -7,10 +7,12 @@ from sqlalchemy import (
     TIMESTAMP,
     Boolean,
     REAL,
+    Index,
+    DateTime,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-import datetime
+from datetime import datetime, timezone
 
 Base = declarative_base()
 
@@ -22,7 +24,7 @@ class Questionnaire(Base):
     destination_id = Column(Integer)
     destination_name = Column(String, nullable=False)
     ready_for_optimization = Column(Boolean, default=False)
-    created_at = Column(TIMESTAMP, default=datetime.datetime.now)
+    created_at = Column(TIMESTAMP, default=datetime.now)
 
     # relationships
     activities = relationship(
@@ -48,3 +50,20 @@ class Activity(Base):
 
     # relationships
     questionnaire = relationship("Questionnaire", back_populates="activities")
+
+
+class RateLimitEntry(Base):
+    __tablename__ = "rate_limits"
+
+    id = Column(Integer, primary_key=True, index=True)
+    ip_address = Column(String, nullable=False)
+    request_count = Column(Integer, default=1)
+    window_start = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    last_request = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    # Create composite index for faster lookups
+    __table_args__ = (Index("idx_ip_endpoint_window", "ip_address", "window_start"),)

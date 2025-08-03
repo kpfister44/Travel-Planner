@@ -83,6 +83,7 @@ def create_error_response(
         Appropriate response object with errors
     """
     response_type = determine_response_type(request)
+
     error_dicts = [
         error.dict() if hasattr(error, "dict") else error for error in errors
     ]
@@ -90,10 +91,10 @@ def create_error_response(
         return DestinationResponse(errors=error_dicts, recommendations=None)
     elif response_type == "questionnaire":
         return ItineraryQuestionnaireResponse(
-            errors=errors, itinerary=None, total_cost=None
+            errors=error_dicts, itinerary=None, total_cost=None
         )
     else:
-        return ItineraryGenerateResponse(errors=errors, data=None, message=None)
+        return ItineraryGenerateResponse(errors=error_dicts, data=None, message=None)
 
 
 def format_validation_errors(errors):
