@@ -1,8 +1,17 @@
 # FastAPI app entry point
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from exceptions import APIException, ValidationError
 from app.api.endpoints import destination_rounter, itinerary_router
 from app.core.logging_config import setup_logging
+from app.core.exception_handler import (
+    validation_exception_handler,
+    api_exception_handler,
+    general_exception_handler,
+)
+from app.middleware.rate_limiter import RateLimiter
+from app.middleware.rate_limit_middleware import RateLimitMiddleware
 import logging
 
 
@@ -20,6 +29,17 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+# Create rate limiter instance
+rate_limiter = RateLimiter()
+
+# Add rate limiting middleware
+app.add_middleware(RateLimitMiddleware, rate_limiter=rate_limiter)
+
+# exception handlers
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(APIException, api_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
 # Include the API router
 app.include_router(destination_rounter.router)
 app.include_router(itinerary_router.router)
@@ -34,4 +54,5 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host="127.0.0.1", port=8002, reload=True)

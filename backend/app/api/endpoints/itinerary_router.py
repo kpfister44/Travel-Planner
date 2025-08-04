@@ -7,6 +7,8 @@ from app.models.itinerary_questionnaire_response import ItineraryQuestionnaireRe
 from app.models.itinerary_generate_request import ItineraryGenerateRequest
 from app.models.itinerary_generate_response import ItineraryGenerateResponse
 from app.services.itinerary_service import ItineraryService
+from app.utils.auth_utils import validate_api_key
+from exceptions import APIException
 
 logger = logging.getLogger(__name__)
 
@@ -20,41 +22,45 @@ def get_itinerary_service() -> ItineraryService:
 
 @router.post("/questionnaire", response_model=ItineraryQuestionnaireResponse)
 async def get_itinerary_activities(
-    _: None = Depends(common_utils.validate_api_key),
+    _: None = Depends(validate_api_key),
     request: ItineraryQuestionnaireRequest = Body(...),
     service: ItineraryService = Depends(get_itinerary_service),
 ):
-    logger.debug(common_utils.get_logging_message(get_itinerary_activities.__name__))
     logger.info(common_utils.get_logging_message_request(request))
     try:
         # return {"status": "ok", "message": "Itinerary service is running"}
-        return service.get_activities(request)
+        response = service.get_activities(request)
+        logger.info(common_utils.get_logging_message_response(response))
+        return response
 
     except Exception as e:
         logger.error(
             common_utils.get_error_message(get_itinerary_activities.__name__, str(e))
         )
-        return ItineraryQuestionnaireResponse(
-            errors=common_utils.get_error_response("400", "Internal server error")
+        raise APIException(
+            status_code=500,
+            detail="Internal server error",
         )
 
 
 @router.post("/generate", response_model=ItineraryGenerateResponse)
 async def get_optimized_itinerary(
-    _: None = Depends(common_utils.validate_api_key),
+    _: None = Depends(validate_api_key),
     request: ItineraryGenerateRequest = Body(...),
     service: ItineraryService = Depends(get_itinerary_service),
 ):
-    logger.debug(common_utils.get_logging_message(get_optimized_itinerary.__name__))
     logger.info(common_utils.get_logging_message_request(request))
     try:
-        return service.get_itinerary(request)
+        response = service.get_itinerary(request)
+        logger.info(common_utils.get_logging_message_response(response))
+        return response
     except Exception as e:
         logger.error(
             common_utils.get_error_message(get_optimized_itinerary.__name__, str(e))
         )
-        return ItineraryQuestionnaireResponse(
-            errors=common_utils.get_error_response("400", "Internal server error")
+        raise APIException(
+            status_code=500,
+            detail="Internal server error",
         )
 
 
@@ -64,3 +70,15 @@ async def health_check(service: ItineraryService = Depends(get_itinerary_service
     if service is None:
         return {"status": "error", "message": "Itinerary service is not available"}
     return {"status": "ok", "message": "Itinerary service is running"}
+
+
+@router.get("/health/db", response_model=dict)
+async def health_check_db(
+    _: None = Depends(validate_api_key),
+    service: ItineraryService = Depends(get_itinerary_service),
+):
+    logger.info(common_utils.get_logging_message(health_check_db.__name__))
+    service.debug_print_all_data()
+    if service is None:
+        return {"status": "error", "message": "Itinerary service is not available"}
+    return {"status": "ok", "message": "Printed all data"}

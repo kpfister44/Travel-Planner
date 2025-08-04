@@ -1,71 +1,69 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    ForeignKey,
+    TIMESTAMP,
+    Boolean,
+    REAL,
+    Index,
+    DateTime,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-import datetime
+from datetime import datetime, timezone
 
 Base = declarative_base()
 
 
-class User(Base):
-    __tablename__ = "users"
+class Questionnaire(Base):
+    __tablename__ = "questionnaires"
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    created_at = Column(TIMESTAMP, default=datetime.datetime.now)
-
-    # relationships
-    prompts = relationship("Prompt", back_populates="user")
-
-
-class Destination(Base):
-    __tablename__ = "destinations"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    country = Column(String)
-    description = Column(Text)
-    image_url = Column(String)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    destination_id = Column(Integer)
+    destination_name = Column(String, nullable=False)
+    ready_for_optimization = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP, default=datetime.now)
 
     # relationships
-    activities = relationship("Activity", back_populates="destination", cascade="all, delete-orphan")
-    attractions = relationship("Attraction", back_populates="destination", cascade="all, delete-orphan")
+    activities = relationship(
+        "Activity", back_populates="questionnaire", cascade="all, delete-orphan"
+    )
 
 
 class Activity(Base):
     __tablename__ = "activities"
 
-    id = Column(Integer, primary_key=True, index=True)
-    destination_id = Column(Integer, ForeignKey("destinations.id"), nullable=False)
+    # Auto-increment primary key
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    # Store original activity ID from OpenAI
+    original_id = Column(String, nullable=True)  # act_001, act_002, etc.
+    questionnaire_id = Column(Integer, ForeignKey("questionnaires.id"), nullable=False)
     name = Column(String, nullable=False)
     description = Column(Text)
+    category = Column(String)
+    duration_hours = Column(REAL)
+    cost = Column(REAL)
+    priority = Column(String, default="medium")  # high, medium, low
 
     # relationships
-    destination = relationship("Destination", back_populates="activities")
+    questionnaire = relationship("Questionnaire", back_populates="activities")
 
 
-class Attraction(Base):
-    __tablename__ = "attractions"
+class RateLimitEntry(Base):
+    __tablename__ = "rate_limits"
 
     id = Column(Integer, primary_key=True, index=True)
-    destination_id = Column(Integer, ForeignKey("destinations.id"), nullable=False)
-    name = Column(String, nullable=False)
-    description = Column(Text)
-    image_url = Column(String)
+    ip_address = Column(String, nullable=False)
+    request_count = Column(Integer, default=1)
+    window_start = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    last_request = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
 
-    # relationships
-    destination = relationship("Destination", back_populates="attractions")
-
-
-class Prompt(Base):
-    __tablename__ = "prompts"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    input_text = Column(Text)
-    llm_output = Column(Text)
-    prompt_template = Column(Text)
-    created_at = Column(TIMESTAMP, default=datetime.datetime.now)
-
-    # relationships
-    user = relationship("User", back_populates="prompts")
+    # Create composite index for faster lookups
+    __table_args__ = (Index("idx_ip_endpoint_window", "ip_address", "window_start"),)

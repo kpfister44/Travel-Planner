@@ -1,49 +1,32 @@
--- basic schema for the app, encompassing user logins, destinations,
--- activities, attractions, and storing prompt data
+-- basic schema for the app, to save questionnaire and associated activities
 
--- Users (authentication)
-CREATE TABLE users (
+-- Questionnaires (stores the questionnaire data and destination info)
+CREATE TABLE questionnaires (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    hashed_password TEXT NOT NULL,
+    destination_id INTEGER,
+    destination_name TEXT NOT NULL,
+    ready_for_optimization BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Destinations
-CREATE TABLE destinations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    country TEXT,
-    description TEXT,
-    image_url TEXT
-);
-
--- Activities
+-- Activities (stores the LLM-suggested activities for each questionnaire)
 CREATE TABLE activities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    destination_id INTEGER NOT NULL,
+    questionnaire_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
-    FOREIGN KEY (destination_id) REFERENCES destinations(id)
+    category TEXT,
+    duration_hours REAL,
+    cost REAL,
+    priority TEXT DEFAULT 'medium',  
+    FOREIGN KEY (questionnaire_id) REFERENCES questionnaires(id) ON DELETE CASCADE
 );
 
--- Attractions
-CREATE TABLE attractions (
+-- Rate Limits table for API rate limiting
+CREATE TABLE rate_limits (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    destination_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    image_url TEXT,
-    FOREIGN KEY (destination_id) REFERENCES destinations(id)
-);
-
--- Prompts (logging inputs and outputs)
-CREATE TABLE prompts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    input_text TEXT,
-    llm_output TEXT,
-    prompt_template TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    ip_address TEXT NOT NULL,
+    request_count INTEGER DEFAULT 1,
+    window_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_request TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -27,6 +27,11 @@ def get_travel_ideas(preferences: dict) -> str:
             max_tokens=500,
             temperature=0.7,
         )
+
+        # testing purpose
+        # response = None
+        # raise Exception("OpenAI API is not available for testing.")
+
         logger.info(f"OpenAI response for destination: {response}")
     except Exception as e:
         logger.error(common_utils.get_error_message(get_travel_ideas.__name__, str(e)))
