@@ -67,7 +67,7 @@ struct ActivitySelectionStepView: View {
                     // Activities list
                     ScrollView {
                         LazyVStack(spacing: 12) {
-                            ForEach(suggestionsResponse.suggestedActivities) { activity in
+                            ForEach(suggestionsResponse.suggestedActivities ?? []) { activity in
                                 ActivityCard(
                                     activity: activity,
                                     isSelected: coordinator.selectedActivities.contains { $0.id == activity.id },
@@ -238,7 +238,7 @@ struct ActivitySelectionStepView_Previews: PreviewProvider {
     static var previews: some View {
         let coordinator = QuestionnaireCoordinator()
         coordinator.activitySuggestionsResponse = MockData.mockActivitySuggestionsResponse()
-        coordinator.selectedActivities = [coordinator.activitySuggestionsResponse!.suggestedActivities[0]]
+        coordinator.selectedActivities = coordinator.activitySuggestionsResponse?.suggestedActivities?.first.map { [$0] } ?? []
         return ActivitySelectionStepView(coordinator: coordinator)
     }
 }
