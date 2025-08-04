@@ -29,9 +29,9 @@ async def get_itinerary_activities(
     logger.info(common_utils.get_logging_message_request(request))
     try:
         # return {"status": "ok", "message": "Itinerary service is running"}
-        respose = service.get_activities(request)
-        logger.info(common_utils.get_logging_message_response(respose))
-        return respose
+        response = service.get_activities(request)
+        logger.info(common_utils.get_logging_message_response(response))
+        return response
 
     except Exception as e:
         logger.error(
@@ -73,11 +73,11 @@ async def health_check(service: ItineraryService = Depends(get_itinerary_service
 
 
 @router.get("/health/db", response_model=dict)
-async def health_check(
+async def health_check_db(
     _: None = Depends(validate_api_key),
     service: ItineraryService = Depends(get_itinerary_service),
 ):
-    logger.info(common_utils.get_logging_message(health_check.__name__))
+    logger.info(common_utils.get_logging_message(health_check_db.__name__))
     service.debug_print_all_data()
     if service is None:
         return {"status": "error", "message": "Itinerary service is not available"}

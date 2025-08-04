@@ -40,7 +40,7 @@ class Activity(Base):
 
     # Store original activity ID from OpenAI
     original_id = Column(String, nullable=True)  # act_001, act_002, etc.
-    questionnaire_id = Column(String, ForeignKey("questionnaires.id"), nullable=False)
+    questionnaire_id = Column(Integer, ForeignKey("questionnaires.id"), nullable=False)
     name = Column(String, nullable=False)
     description = Column(Text)
     category = Column(String)
