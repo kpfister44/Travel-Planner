@@ -77,11 +77,24 @@ struct ItineraryDisplayView: View {
                             Text("Unable to generate itinerary")
                                 .font(.headline)
                             
-                            Text("Please try again or go back to modify your preferences.")
-                                .font(.body)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
+                            if !coordinator.validationErrors.isEmpty {
+                                Text(coordinator.validationErrors.first ?? "Please try again or go back to modify your preferences.")
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+                            } else {
+                                Text("Please try again or go back to modify your preferences.")
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+                            }
+                            
+                            Button("Try Again") {
+                                coordinator.retryItineraryGeneration()
+                            }
+                            .buttonStyle(.bordered)
                         }
                     }
                     

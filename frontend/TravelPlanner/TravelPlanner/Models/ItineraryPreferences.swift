@@ -191,10 +191,10 @@ struct SuggestedActivity: Codable, Identifiable {
     let description: String
     let category: String
     let estimatedDuration: String
-    let location: String
+    let location: String?
     let cost: String
-    let rating: Double
-    let whyRecommended: String
+    let rating: Double?
+    let whyRecommended: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -222,10 +222,43 @@ struct ActivityQuestionnaire: Codable {
 }
 
 struct ActivitySuggestionsResponse: Codable {
-    let suggestedActivities: [SuggestedActivity]
+    let errors: [BackendError]?
+    let suggestedActivities: [SuggestedActivity]?
+    let questionnaireId: String?
+    let destination: String?
+    let readyForOptimization: Bool?
     
     enum CodingKeys: String, CodingKey {
+        case errors
         case suggestedActivities = "suggested_activities"
+        case questionnaireId = "questionnaire_id"
+        case destination
+        case readyForOptimization = "ready_for_optimization"
+    }
+}
+
+/// Selected activity with priority for itinerary generation
+struct SelectedActivity: Codable, Identifiable {
+    let id: String
+    let priority: ActivityPriority
+    
+    enum CodingKeys: String, CodingKey {
+        case id, priority
+    }
+}
+
+/// Activity priority levels
+enum ActivityPriority: String, Codable, CaseIterable {
+    case high = "high"
+    case medium = "medium"
+    case low = "low"
+    
+    var displayName: String {
+        switch self {
+        case .high: return "Must Do"
+        case .medium: return "Would Like"
+        case .low: return "If Time Allows"
+        }
     }
 }
 

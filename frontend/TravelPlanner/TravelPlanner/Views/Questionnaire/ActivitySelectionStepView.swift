@@ -98,7 +98,7 @@ struct ActivitySelectionStepView: View {
                         .multilineTextAlignment(.center)
                     
                     Button("Try Again") {
-                        coordinator.loadActivitySuggestions()
+                        coordinator.retryActivitySuggestions()
                     }
                     .buttonStyle(.bordered)
                 }
@@ -175,10 +175,12 @@ struct ActivityCard: View {
                 // Details row
                 HStack {
                     // Location
-                    Label(activity.location, systemImage: "location")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                    if let location = activity.location {
+                        Label(location, systemImage: "location")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
                     
                     Spacer()
                     
@@ -189,25 +191,29 @@ struct ActivityCard: View {
                             .fontWeight(.medium)
                             .foregroundColor(.primary)
                         
-                        HStack(spacing: 2) {
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
-                                .font(.caption)
-                            Text(String(format: "%.1f", activity.rating))
-                                .font(.caption)
-                                .fontWeight(.medium)
+                        if let rating = activity.rating {
+                            HStack(spacing: 2) {
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(.yellow)
+                                    .font(.caption)
+                                Text(String(format: "%.1f", rating))
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                            }
                         }
                     }
                 }
                 
                 // Why recommended
-                Text("💡 \(activity.whyRecommended)")
-                    .font(.caption)
-                    .foregroundColor(.blue)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(8)
+                if let whyRecommended = activity.whyRecommended {
+                    Text("💡 \(whyRecommended)")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(8)
+                }
             }
             .padding()
             .background(

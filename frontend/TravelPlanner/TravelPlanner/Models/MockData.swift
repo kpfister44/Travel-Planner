@@ -67,6 +67,7 @@ struct MockData {
     /// Returns mock activity suggestions for testing itinerary flow
     static func mockActivitySuggestionsResponse() -> ActivitySuggestionsResponse {
         return ActivitySuggestionsResponse(
+            errors: nil,
             suggestedActivities: [
                 SuggestedActivity(
                     id: "activity_001",
@@ -134,7 +135,10 @@ struct MockData {
                     rating: 4.3,
                     whyRecommended: "Perfect for relaxation between cultural activities"
                 )
-            ]
+            ],
+            questionnaireId: "mock_questionnaire_123",
+            destination: "Barcelona, Spain",
+            readyForOptimization: true
         )
     }
     
