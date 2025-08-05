@@ -134,7 +134,7 @@ struct ItineraryDisplayView: View {
                 StatCard(
                     icon: "dollarsign.circle",
                     title: "Estimated Cost",
-                    value: "$\(summary.totalCost)",
+                    value: formatCurrency(summary.totalCost),
                     color: .green
                 )
                 
@@ -176,7 +176,7 @@ struct ItineraryDisplayView: View {
             }
             
             VStack(alignment: .leading, spacing: 8) {
-                SummaryRow(label: "Estimated Budget", value: "$\(summary.totalCost)")
+                SummaryRow(label: "Estimated Budget", value: formatCurrency(summary.totalCost))
                 SummaryRow(label: "Total Activities", value: "\(summary.totalActivities)")
                 SummaryRow(label: "Optimization Score", value: "\(Int(summary.optimizationScore * 100))% match to your preferences")
             }
@@ -250,6 +250,14 @@ struct ItineraryDisplayView: View {
         }
         return dateString
     }
+    
+    private func formatCurrency(_ amount: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: NSNumber(value: amount)) ?? "$\(Int(amount))"
+    }
 }
 
 // MARK: - Supporting Views
@@ -278,7 +286,7 @@ struct DayScheduleCard: View {
                     Spacer()
                     
                     VStack(alignment: .trailing, spacing: 4) {
-                        Text("$\(day.dailyCost)")
+                        Text(formatCurrency(day.dailyCost))
                             .font(.subheadline)
                             .fontWeight(.medium)
                             .foregroundColor(.green)
@@ -312,6 +320,14 @@ struct DayScheduleCard: View {
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+    }
+    
+    private func formatCurrency(_ amount: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: NSNumber(value: amount)) ?? "$\(Int(amount))"
     }
 }
 
