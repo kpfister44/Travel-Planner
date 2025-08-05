@@ -56,7 +56,7 @@ struct ItinerarySummaryStepView: View {
                             title: "Selected Activities (\(coordinator.selectedActivities.count))",
                             icon: "checkmark.circle",
                             content: coordinator.selectedActivities.map { activity in
-                                "\(activity.name) - \(activity.category.replacingOccurrences(of: "_", with: " ").capitalized) (\(activity.estimatedDuration))"
+                                "\(activity.name) - \(activity.category.replacingOccurrences(of: "_", with: " ").capitalized) (\(activity.durationHours)h)"
                             }
                         ) {
                             coordinator.jumpToStep(.activitySelection)

@@ -146,7 +146,7 @@ struct ActivityCard: View {
                             Text("•")
                                 .foregroundColor(.secondary)
                             
-                            Text(activity.estimatedDuration)
+                            Text("\(activity.durationHours)h")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -174,45 +174,23 @@ struct ActivityCard: View {
                 
                 // Details row
                 HStack {
-                    // Location
-                    if let location = activity.location {
-                        Label(location, systemImage: "location")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
+                    // Priority
+                    Text(activity.priority.capitalized)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(activity.priority == "high" ? .red : activity.priority == "medium" ? .orange : .green)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background((activity.priority == "high" ? Color.red : activity.priority == "medium" ? Color.orange : Color.green).opacity(0.1))
+                        .cornerRadius(4)
                     
                     Spacer()
                     
-                    // Cost and rating
-                    HStack(spacing: 8) {
-                        Text(activity.cost)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.primary)
-                        
-                        if let rating = activity.rating {
-                            HStack(spacing: 2) {
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(.yellow)
-                                    .font(.caption)
-                                Text(String(format: "%.1f", rating))
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                            }
-                        }
-                    }
-                }
-                
-                // Why recommended
-                if let whyRecommended = activity.whyRecommended {
-                    Text("💡 \(whyRecommended)")
+                    // Cost
+                    Text(activity.cost == 0 ? "Free" : String(format: "$%.0f", activity.cost))
                         .font(.caption)
-                        .foregroundColor(.blue)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(8)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
                 }
             }
             .padding()

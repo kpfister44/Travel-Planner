@@ -44,13 +44,13 @@ struct ItineraryPreferences: Codable {
 enum TravelPace: String, Codable, CaseIterable {
     case relaxed = "relaxed"
     case moderate = "moderate"
-    case packed = "packed"
+    case fast = "fast"
     
     var displayName: String {
         switch self {
         case .relaxed: return "Relaxed"
         case .moderate: return "Moderate"
-        case .packed: return "Packed"
+        case .fast: return "Fast"
         }
     }
     
@@ -58,7 +58,7 @@ enum TravelPace: String, Codable, CaseIterable {
         switch self {
         case .relaxed: return "Take it easy with plenty of downtime"
         case .moderate: return "Balanced mix of activities and rest"
-        case .packed: return "See as much as possible, stay busy"
+        case .fast: return "See as much as possible, stay busy"
         }
     }
 }
@@ -188,24 +188,20 @@ enum TransportationType: String, Codable, CaseIterable {
 struct SuggestedActivity: Codable, Identifiable {
     let id: String
     let name: String
-    let description: String
     let category: String
-    let estimatedDuration: String
-    let location: String?
-    let cost: String
-    let rating: Double?
-    let whyRecommended: String?
+    let durationHours: Int
+    let cost: Double
+    let priority: String
+    let description: String
     
     enum CodingKeys: String, CodingKey {
         case id
         case name
-        case description
         case category
-        case estimatedDuration = "estimated_duration"
-        case location
+        case durationHours = "duration_hours"
         case cost
-        case rating
-        case whyRecommended = "why_recommended"
+        case priority
+        case description
     }
 }
 
@@ -225,7 +221,7 @@ struct ActivitySuggestionsResponse: Codable {
     let errors: [BackendError]?
     let suggestedActivities: [SuggestedActivity]?
     let questionnaireId: String?
-    let destination: String?
+    let destination: SimpleDestination?
     let readyForOptimization: Bool?
     
     enum CodingKeys: String, CodingKey {
@@ -235,6 +231,12 @@ struct ActivitySuggestionsResponse: Codable {
         case destination
         case readyForOptimization = "ready_for_optimization"
     }
+}
+
+/// Simplified destination model for activity suggestions response
+struct SimpleDestination: Codable {
+    let id: String
+    let name: String
 }
 
 /// Selected activity with priority for itinerary generation
