@@ -65,9 +65,29 @@ def get_itinerary_activity(activity_request: list) -> str:
     return response.choices[0].message.content
 
 
-def get_optimized_itinerary(optimization_request: list) -> str:
+def get_optimized_itinerary(optimization_request: dict) -> str:
     try:
         openai.api_key = settings.OPENAI_API_KEY
+        
+        # Extract travel dates and calculate duration
+        travel_dates = optimization_request.get("travel_dates", {})
+        start_date = travel_dates.get("start_date")
+        end_date = travel_dates.get("end_date")
+        
+        # Create enhanced user prompt with date context
+        user_prompt = f"Create an optimized itinerary based on the following preferences: {optimization_request}"
+        
+        if start_date and end_date:
+            from datetime import datetime
+            try:
+                start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+                end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+                total_days = (end_dt - start_dt).days + 1
+                
+                user_prompt = f"Create an optimized {total_days}-day itinerary for {optimization_request.get('destination', {}).get('name', 'the destination')} from {start_date} to {end_date}. Distribute activities across all {total_days} days. Preferences and activities: {optimization_request}"
+            except ValueError:
+                logger.warning(f"Invalid date format in optimization request: {start_date} to {end_date}")
+        
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -77,10 +97,10 @@ def get_optimized_itinerary(optimization_request: list) -> str:
                 },
                 {
                     "role": "user",
-                    "content": f"Create an optimized itinerary based on the following preference: {optimization_request}",
+                    "content": user_prompt,
                 },
             ],
-            max_tokens=500,
+            max_tokens=3000,  # Increased for longer itineraries
             temperature=0.7,
         )
         logger.info(f"OpenAI response for optimized itinerary: {response}")

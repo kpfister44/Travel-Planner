@@ -23,6 +23,8 @@ class Questionnaire(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     destination_id = Column(Integer)
     destination_name = Column(String, nullable=False)
+    start_date = Column(String, nullable=True)  # Travel start date (YYYY-MM-DD)
+    end_date = Column(String, nullable=True)    # Travel end date (YYYY-MM-DD)
     ready_for_optimization = Column(Boolean, default=False)
     created_at = Column(TIMESTAMP, default=datetime.now)
 

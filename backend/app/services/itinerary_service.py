@@ -62,7 +62,15 @@ class ItineraryService:
                     "name": request.selected_destination.name,
                 }
 
-            success, id = self._save_activities_to_db(destination_data, activities)
+            # Extract travel dates from request
+            travel_dates_data = None
+            if request.travel_dates:
+                travel_dates_data = {
+                    "start_date": str(request.travel_dates.start_date),
+                    "end_date": str(request.travel_dates.end_date),
+                }
+
+            success, id = self._save_activities_to_db(destination_data, activities, travel_dates_data)
 
             if not success:
                 logger.error(
@@ -159,6 +167,14 @@ class ItineraryService:
             response_json = json.loads(response_text)
             return ItineraryGenerateResponse(**response_json)
 
+        except json.JSONDecodeError as e:
+            logger.error(
+                common_utils.get_error_message(
+                    self.get_itinerary.__name__, 
+                    f"JSON parsing failed: {str(e)}. Response length: {len(response_text) if response_text else 0}"
+                )
+            )
+            raise CustomException("OpenAI response was truncated. Please try again.")
         except Exception as e:
             logger.error(
                 common_utils.get_error_message(self.get_itinerary.__name__, str(e))
@@ -228,6 +244,8 @@ class ItineraryService:
                 "id": questionnaire.id,
                 "destination_id": questionnaire.destination_id,
                 "destination_name": questionnaire.destination_name,
+                "start_date": questionnaire.start_date,
+                "end_date": questionnaire.end_date,
                 "ready_for_optimization": questionnaire.ready_for_optimization,
             }
         except Exception as e:
@@ -240,7 +258,7 @@ class ItineraryService:
         finally:
             db.close()
 
-    def _save_activities_to_db(self, destination: dict, activities: list[dict]) -> bool:
+    def _save_activities_to_db(self, destination: dict, activities: list[dict], travel_dates: dict = None) -> bool:
         """Save questionnaire and activities to database"""
         logger.debug(
             common_utils.get_logging_message(self._save_activities_to_db.__name__)
@@ -252,6 +270,8 @@ class ItineraryService:
             questionnaire = Questionnaire(
                 destination_id=destination.get("id") if destination else None,
                 destination_name=destination.get("name", "") if destination else "",
+                start_date=travel_dates.get("start_date") if travel_dates else None,
+                end_date=travel_dates.get("end_date") if travel_dates else None,
                 ready_for_optimization=True,
             )
             db.add(questionnaire)
@@ -357,6 +377,10 @@ class ItineraryService:
             "destination": {
                 "id": questionnaire_data["destination_id"],
                 "name": questionnaire_data["destination_name"],
+            },
+            "travel_dates": {
+                "start_date": questionnaire_data["start_date"],
+                "end_date": questionnaire_data["end_date"],
             },
             "selected_activities": selected_activities,
             "preferences": {
