@@ -121,6 +121,59 @@ class ItineraryService:
             )
             raise CustomException("Questionnaire not ready for optimization")
 
+        # Step 1.5: Validate trip length (max 10 days)
+        start_date = questionnaire_data.get("start_date")
+        end_date = questionnaire_data.get("end_date")
+        
+        if start_date and end_date:
+            try:
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+                end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+                trip_length = (end_dt - start_dt).days + 1
+                
+                if trip_length > 10:
+                    logger.error(
+                        common_utils.get_error_message(
+                            self.get_itinerary.__name__,
+                            f"Trip length ({trip_length} days) exceeds maximum allowed (10 days)",
+                        )
+                    )
+                    raise CustomException(f"Trip length of {trip_length} days exceeds the maximum allowed length of 10 days. Please select a shorter trip for optimal recommendations.")
+                
+                if trip_length < 1:
+                    logger.error(
+                        common_utils.get_error_message(
+                            self.get_itinerary.__name__,
+                            f"Invalid trip length: {trip_length} days",
+                        )
+                    )
+                    raise CustomException("Trip length must be at least 1 day. Please check your travel dates.")
+                    
+                logger.info(
+                    common_utils.get_logging_message(
+                        self.get_itinerary.__name__,
+                        f"Validated trip length: {trip_length} days",
+                    )
+                )
+                
+            except ValueError as e:
+                logger.error(
+                    common_utils.get_error_message(
+                        self.get_itinerary.__name__,
+                        f"Invalid date format in questionnaire: {start_date} to {end_date}",
+                    )
+                )
+                raise CustomException("Invalid travel dates format. Please select valid dates.")
+        else:
+            logger.error(
+                common_utils.get_error_message(
+                    self.get_itinerary.__name__,
+                    "Missing travel dates in questionnaire data",
+                )
+            )
+            raise CustomException("Travel dates are required for itinerary generation.")
+
         # Step 2: Get all activities from database and filter by selected ones
         all_activities = self._get_activities_from_db(request.questionnaire_id)
         if not all_activities:

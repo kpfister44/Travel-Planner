@@ -6,6 +6,7 @@ struct TravelDatesStepView: View {
     
     @State private var startDate = Date()
     @State private var endDate = Date()
+    @State private var dateValidationError: String?
     
     var body: some View {
         VStack(spacing: 32) {
@@ -29,7 +30,7 @@ struct TravelDatesStepView: View {
                     Text("Start Date")
                         .font(.headline)
                     
-                    DatePicker("", selection: $startDate, in: Date()..., displayedComponents: .date)
+                    DatePicker("", selection: $startDate, displayedComponents: .date)
                         .datePickerStyle(CompactDatePickerStyle())
                         .labelsHidden()
                 }
@@ -47,6 +48,24 @@ struct TravelDatesStepView: View {
             .background(Color(.systemGray6))
             .cornerRadius(12)
             
+            // Validation error message
+            if let error = dateValidationError {
+                VStack(spacing: 8) {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundColor(.orange)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(8)
+                }
+                .transition(.opacity)
+            }
+            
             Spacer()
         }
         .padding()
@@ -59,6 +78,11 @@ struct TravelDatesStepView: View {
         .onChange(of: endDate) { _ in
             updateCoordinatorDates()
         }
+    }
+    
+    /// Maximum allowed end date (10 days from start date)
+    private var maxEndDate: Date {
+        Calendar.current.date(byAdding: .day, value: 10, to: startDate) ?? startDate
     }
     
     /// Initializes date pickers from coordinator's stored string values
@@ -79,13 +103,29 @@ struct TravelDatesStepView: View {
         }
     }
     
-    /// Converts Date objects to API-compatible string format
+    /// Converts Date objects to API-compatible string format and validates trip length
     private func updateCoordinatorDates() {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         
+        // Always save the current dates to coordinator (no modifications)
         coordinator.userPreferences.travelDates.startDate = formatter.string(from: startDate)
         coordinator.userPreferences.travelDates.endDate = formatter.string(from: endDate)
+        
+        // Validate trip length (only show warnings, don't modify dates)
+        let calendar = Calendar.current
+        let daysDifference = calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if daysDifference > 10 {
+                dateValidationError = "Please select a trip of 10 days or less for the best recommendations"
+            } else if daysDifference < 0 {
+                dateValidationError = "End date must be after start date"
+            } else {
+                dateValidationError = nil
+                coordinator.validationErrors = [] // Clear any existing questionnaire errors only when dates are valid
+            }
+        }
     }
 }
 

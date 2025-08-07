@@ -79,6 +79,13 @@ class QuestionnaireCoordinator: ObservableObject {
                 if startDate < Date() {
                     errors.append("Start date must be in the future")
                 }
+                
+                // Check if trip length exceeds 10 days
+                let calendar = Calendar.current
+                let daysDifference = calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+                if daysDifference > 10 {
+                    errors.append("Please select a trip of 10 days or less for the best recommendations")
+                }
             }
         case .groupSize:
             if userPreferences.groupSize < 1 || userPreferences.groupSize > 20 {

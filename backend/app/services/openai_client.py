@@ -75,7 +75,10 @@ def get_optimized_itinerary(optimization_request: dict) -> str:
         end_date = travel_dates.get("end_date")
         
         # Create enhanced user prompt with date context
-        user_prompt = f"Create an optimized itinerary based on the following preferences: {optimization_request}"
+        destination_name = optimization_request.get('destination', {}).get('name', 'the destination')
+        selected_activities = optimization_request.get('selected_activities', [])
+        
+        user_prompt = f"Create an optimized itinerary for {destination_name}. The user has selected {len(selected_activities)} activities they definitely want to include: {[a.get('name', 'Unknown') for a in selected_activities]}. Use these as foundation activities and generate additional complementary activities to create a complete, varied itinerary. Full request details: {optimization_request}"
         
         if start_date and end_date:
             from datetime import datetime
@@ -84,7 +87,7 @@ def get_optimized_itinerary(optimization_request: dict) -> str:
                 end_dt = datetime.strptime(end_date, "%Y-%m-%d")
                 total_days = (end_dt - start_dt).days + 1
                 
-                user_prompt = f"Create an optimized {total_days}-day itinerary for {optimization_request.get('destination', {}).get('name', 'the destination')} from {start_date} to {end_date}. Distribute activities across all {total_days} days. Preferences and activities: {optimization_request}"
+                user_prompt = f"Create an optimized {total_days}-day itinerary for {destination_name} from {start_date} to {end_date}. The user has selected {len(selected_activities)} foundation activities: {[a.get('name', 'Unknown') for a in selected_activities]}. You must include these activities and generate additional complementary activities to fill all {total_days} days with varied, engaging experiences. Avoid repeating the same activity multiple times. Full preferences: {optimization_request}"
             except ValueError:
                 logger.warning(f"Invalid date format in optimization request: {start_date} to {end_date}")
         
