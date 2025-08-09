@@ -28,7 +28,7 @@ struct DailySchedule: Codable {
     let dayNumber: Int
     let theme: String
     let activities: [ScheduledActivity]
-    let dailyCost: Int
+    let dailyCost: Double
     let walkingDistance: String
     
     enum CodingKeys: String, CodingKey {
@@ -63,7 +63,7 @@ struct ActivityDetail: Codable {
 
 /// Summary metrics for the entire itinerary
 struct ItinerarySummary: Codable {
-    let totalCost: Int
+    let totalCost: Double
     let totalActivities: Int
     let optimizationScore: Double
     

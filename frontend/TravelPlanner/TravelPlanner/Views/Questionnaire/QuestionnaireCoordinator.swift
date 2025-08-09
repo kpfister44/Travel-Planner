@@ -79,6 +79,13 @@ class QuestionnaireCoordinator: ObservableObject {
                 if startDate < Date() {
                     errors.append("Start date must be in the future")
                 }
+                
+                // Check if trip length exceeds 10 days
+                let calendar = Calendar.current
+                let daysDifference = calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+                if daysDifference > 10 {
+                    errors.append("Please select a trip of 10 days or less for the best recommendations")
+                }
             }
         case .groupSize:
             if userPreferences.groupSize < 1 || userPreferences.groupSize > 20 {
@@ -205,10 +212,32 @@ class QuestionnaireCoordinator: ObservableObject {
         
         isLoadingSuggestedActivities = true
         
-        // TODO: Replace with actual API call
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            self.activitySuggestionsResponse = MockData.mockActivitySuggestionsResponse()
-            self.isLoadingSuggestedActivities = false
+        Task {
+            do {
+                let response = try await APIService.shared.getActivitySuggestions(
+                    destination: selectedDestination,
+                    preferences: userPreferences,
+                    itineraryPreferences: itineraryPreferences
+                )
+                
+                await MainActor.run {
+                    self.activitySuggestionsResponse = response
+                    self.isLoadingSuggestedActivities = false
+                    // Simple persistence: store questionnaire ID and response
+                    self.saveActivitySuggestionsToUserDefaults(response)
+                }
+            } catch let error as NetworkError {
+                await MainActor.run {
+                    self.validationErrors = [error.localizedDescription]
+                    self.isLoadingSuggestedActivities = false
+                    // Keep showing loading state so user can retry
+                }
+            } catch {
+                await MainActor.run {
+                    self.validationErrors = ["Failed to load activity suggestions. Please try again."]
+                    self.isLoadingSuggestedActivities = false
+                }
+            }
         }
     }
     
@@ -226,15 +255,61 @@ class QuestionnaireCoordinator: ObservableObject {
     
     /// Generates the final itinerary and navigates to display view
     func generateItinerary() {
+        guard let questionnaireId = activitySuggestionsResponse?.questionnaireId else {
+            validationErrors = ["Missing questionnaire ID. Please reload activity suggestions."]
+            return
+        }
+        
         isGeneratingItinerary = true
         
-        // TODO: Replace with actual API call to /itinerary/generate
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.generatedItinerary = MockData.mockItineraryResponse()
-            self.isGeneratingItinerary = false
-            // Only navigate after loading completes
-            self.currentStep = .itineraryDisplay
+        // Convert selected activities to the required format
+        let selectedActivitiesWithPriority = selectedActivities.map { activity in
+            SelectedActivity(
+                id: activity.id,
+                priority: .medium // Default priority, could be customized by user
+            )
         }
+        
+        Task {
+            do {
+                let response = try await APIService.shared.generateItinerary(
+                    questionnaireId: questionnaireId,
+                    selectedActivities: selectedActivitiesWithPriority,
+                    itineraryPreferences: itineraryPreferences
+                )
+                
+                await MainActor.run {
+                    self.generatedItinerary = response
+                    self.isGeneratingItinerary = false
+                    // Simple persistence: store final itinerary
+                    self.saveItineraryToUserDefaults(response)
+                    // Only navigate after loading completes
+                    self.currentStep = .itineraryDisplay
+                }
+            } catch let error as NetworkError {
+                await MainActor.run {
+                    self.validationErrors = [error.localizedDescription]
+                    self.isGeneratingItinerary = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.validationErrors = ["Failed to generate itinerary. Please try again."]
+                    self.isGeneratingItinerary = false
+                }
+            }
+        }
+    }
+    
+    /// Re-attempts to load activity suggestions after a failure
+    func retryActivitySuggestions() {
+        validationErrors = []
+        loadActivitySuggestions()
+    }
+    
+    /// Re-attempts to generate itinerary after a failure
+    func retryItineraryGeneration() {
+        validationErrors = []
+        generateItinerary()
     }
     
     /// Completes the entire questionnaire flow
@@ -247,6 +322,60 @@ class QuestionnaireCoordinator: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.date(from: dateString)
+    }
+    
+    // MARK: - Simple Data Persistence
+    
+    /// Saves activity suggestions response to UserDefaults for simple persistence
+    private func saveActivitySuggestionsToUserDefaults(_ response: ActivitySuggestionsResponse) {
+        do {
+            let data = try JSONEncoder().encode(response)
+            UserDefaults.standard.set(data, forKey: "activitySuggestionsResponse")
+        } catch {
+            // Ignore persistence errors - not critical for functionality
+            print("Failed to save activity suggestions: \(error)")
+        }
+    }
+    
+    /// Saves itinerary response to UserDefaults for simple persistence
+    private func saveItineraryToUserDefaults(_ response: ItineraryResponse) {
+        do {
+            let data = try JSONEncoder().encode(response)
+            UserDefaults.standard.set(data, forKey: "generatedItinerary")
+        } catch {
+            // Ignore persistence errors - not critical for functionality
+            print("Failed to save itinerary: \(error)")
+        }
+    }
+    
+    /// Loads activity suggestions from UserDefaults if available
+    func loadActivitySuggestionsFromUserDefaults() {
+        guard let data = UserDefaults.standard.data(forKey: "activitySuggestionsResponse") else { return }
+        do {
+            let response = try JSONDecoder().decode(ActivitySuggestionsResponse.self, from: data)
+            self.activitySuggestionsResponse = response
+        } catch {
+            // Ignore decoding errors - data might be from old version
+            print("Failed to load activity suggestions: \(error)")
+        }
+    }
+    
+    /// Loads itinerary from UserDefaults if available
+    func loadItineraryFromUserDefaults() {
+        guard let data = UserDefaults.standard.data(forKey: "generatedItinerary") else { return }
+        do {
+            let response = try JSONDecoder().decode(ItineraryResponse.self, from: data)
+            self.generatedItinerary = response
+        } catch {
+            // Ignore decoding errors - data might be from old version
+            print("Failed to load itinerary: \(error)")
+        }
+    }
+    
+    /// Clears all stored data when starting new questionnaire
+    func clearStoredData() {
+        UserDefaults.standard.removeObject(forKey: "activitySuggestionsResponse")
+        UserDefaults.standard.removeObject(forKey: "generatedItinerary")
     }
     
     /// Resets questionnaire to start over

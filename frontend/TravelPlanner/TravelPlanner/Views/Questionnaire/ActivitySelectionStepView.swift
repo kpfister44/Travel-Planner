@@ -67,7 +67,7 @@ struct ActivitySelectionStepView: View {
                     // Activities list
                     ScrollView {
                         LazyVStack(spacing: 12) {
-                            ForEach(suggestionsResponse.suggestedActivities) { activity in
+                            ForEach(suggestionsResponse.suggestedActivities ?? []) { activity in
                                 ActivityCard(
                                     activity: activity,
                                     isSelected: coordinator.selectedActivities.contains { $0.id == activity.id },
@@ -98,7 +98,7 @@ struct ActivitySelectionStepView: View {
                         .multilineTextAlignment(.center)
                     
                     Button("Try Again") {
-                        coordinator.loadActivitySuggestions()
+                        coordinator.retryActivitySuggestions()
                     }
                     .buttonStyle(.bordered)
                 }
@@ -146,7 +146,7 @@ struct ActivityCard: View {
                             Text("•")
                                 .foregroundColor(.secondary)
                             
-                            Text(activity.estimatedDuration)
+                            Text("\(activity.durationHours)h")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -174,40 +174,24 @@ struct ActivityCard: View {
                 
                 // Details row
                 HStack {
-                    // Location
-                    Label(activity.location, systemImage: "location")
+                    // Priority
+                    Text(activity.priority.capitalized)
                         .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                        .fontWeight(.medium)
+                        .foregroundColor(activity.priority == "high" ? .red : activity.priority == "medium" ? .orange : .green)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background((activity.priority == "high" ? Color.red : activity.priority == "medium" ? Color.orange : Color.green).opacity(0.1))
+                        .cornerRadius(4)
                     
                     Spacer()
                     
-                    // Cost and rating
-                    HStack(spacing: 8) {
-                        Text(activity.cost)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.primary)
-                        
-                        HStack(spacing: 2) {
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
-                                .font(.caption)
-                            Text(String(format: "%.1f", activity.rating))
-                                .font(.caption)
-                                .fontWeight(.medium)
-                        }
-                    }
+                    // Cost
+                    Text(activity.cost == 0 ? "Free" : String(format: "$%.0f", activity.cost))
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
                 }
-                
-                // Why recommended
-                Text("💡 \(activity.whyRecommended)")
-                    .font(.caption)
-                    .foregroundColor(.blue)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(8)
             }
             .padding()
             .background(
@@ -232,7 +216,7 @@ struct ActivitySelectionStepView_Previews: PreviewProvider {
     static var previews: some View {
         let coordinator = QuestionnaireCoordinator()
         coordinator.activitySuggestionsResponse = MockData.mockActivitySuggestionsResponse()
-        coordinator.selectedActivities = [coordinator.activitySuggestionsResponse!.suggestedActivities[0]]
+        coordinator.selectedActivities = coordinator.activitySuggestionsResponse?.suggestedActivities?.first.map { [$0] } ?? []
         return ActivitySelectionStepView(coordinator: coordinator)
     }
 }
