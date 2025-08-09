@@ -21,12 +21,14 @@ struct TravelerInfoStepView: View {
                         .font(.title2)
                         .fontWeight(.semibold)
                         .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("aboutYourselfTitle")
                     
                     Text("Your age group helps us understand your travel preferences and recommend age-appropriate destinations and activities.")
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
+                        .accessibilityIdentifier("aboutYourselfSubtitle")
                 }
                 
                 VStack(spacing: 12) {
@@ -63,6 +65,7 @@ struct TravelerInfoStepView: View {
                             .background(coordinator.userPreferences.travelerInfo.ageGroup == ageGroup.id ? Color.blue : Color(.systemGray6))
                             .cornerRadius(12)
                         }
+                        .accessibilityIdentifier("ageGroup_\(ageGroup.id)")
                     }
                 }
             }
