@@ -1,9 +1,13 @@
 import SwiftUI
+import UIKit
 
 /// Final step: Displays the complete generated itinerary to the user
 struct ItineraryDisplayView: View {
     @ObservedObject var coordinator: QuestionnaireCoordinator
     @State private var expandedDays: Set<Int> = []
+    @State private var isExporting = false
+    @State private var showingShareSheet = false
+    @State private var pdfURL: URL?
     
     private var itinerary: GeneratedItinerary? {
         coordinator.generatedItinerary?.itinerary
@@ -103,6 +107,11 @@ struct ItineraryDisplayView: View {
                 .padding()
             }
         }
+        .sheet(isPresented: $showingShareSheet) {
+            if let pdfURL = pdfURL {
+                ShareSheet(items: [pdfURL])
+            }
+        }
     }
     
     // MARK: - Header Section
@@ -191,21 +200,28 @@ struct ItineraryDisplayView: View {
     @ViewBuilder
     private func actionButtons() -> some View {
         VStack(spacing: 16) {
-            // Export button (placeholder for future PDF functionality)
+            // Export button with PDF generation
             Button(action: {
-                // TODO: Implement PDF export
+                exportToPDF()
             }) {
                 HStack {
-                    Image(systemName: "square.and.arrow.up")
-                    Text("Export Itinerary")
+                    if isExporting {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    Text(isExporting ? "Generating PDF..." : "Export Itinerary")
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.blue)
+                .background(isExporting ? Color.gray : Color.blue)
                 .foregroundColor(.white)
                 .cornerRadius(12)
                 .font(.headline)
             }
+            .disabled(isExporting)
             
             // Start over button
             Button(action: {
@@ -225,6 +241,33 @@ struct ItineraryDisplayView: View {
         }
         .padding(.horizontal)
         .padding(.bottom)
+    }
+    
+    // MARK: - PDF Export
+    private func exportToPDF() {
+        guard let itinerary = itinerary, let summary = summary else {
+            print("No itinerary data available for export")
+            return
+        }
+        
+        isExporting = true
+        
+        // Generate PDF in background
+        DispatchQueue.global(qos: .userInitiated).async {
+            let pdfURL = ItineraryPDFGenerator.generatePDF(from: itinerary, summary: summary)
+            
+            DispatchQueue.main.async {
+                self.isExporting = false
+                
+                if let pdfURL = pdfURL {
+                    self.pdfURL = pdfURL
+                    self.showingShareSheet = true
+                } else {
+                    // Handle error - could show an alert here
+                    print("Failed to generate PDF")
+                }
+            }
+        }
     }
     
     // MARK: - Helper Methods
@@ -462,6 +505,20 @@ struct SummaryRow: View {
                 .fontWeight(.medium)
         }
     }
+}
+
+// MARK: - ShareSheet
+
+/// UIKit share sheet wrapper for SwiftUI
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Preview
