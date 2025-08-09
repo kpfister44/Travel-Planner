@@ -2,11 +2,12 @@ import timeit
 import tracemalloc
 import requests
 import concurrent.futures
+import os
 
-API_URL = "http://127.0.0.1:8000/itinerary/questionnaire"
+API_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8002") + "/itinerary/questionnaire"
 HEADERS = {
     "Content-Type": "application/json",
-    "x-api-key": "your_api_key_here"
+    "x-api-key": os.getenv("API_KEY", "")
 }
 
 sample_input = {
